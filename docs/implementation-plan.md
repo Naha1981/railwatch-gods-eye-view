@@ -1,95 +1,115 @@
-# RailWatch — Implementation Plan
+# RailShield — Implementation Plan
 
-## Sequencing
+Reflects the approved decisions in `docs/phase-2-decision.md`. Nothing in
+this document has been built — it's the sequence to follow once each phase
+is greenlit. No dependencies installed, no production code modified, no
+infrastructure provisioned as part of writing this plan.
 
-### Phase 0 — Audit & scaffolding (this pass, complete)
-- `docs/integrations.md`, `docs/architecture.md`, `docs/implementation-plan.md`
-- `src/integrations/` adapter interfaces (no wiring, no new runtime deps)
-- No destructive changes, no paid services, no packages installed
+## PHASE 1
 
-### Phase 1 — Evidence video (ffmpeg)
-**Files to add:**
-- `railwatch/backend/evidence_video.py` — subprocess wrapper around `ffmpeg`:
-  clip extraction by timestamp range, burn-in overlay (event ID, GPS,
-  timestamp, SHA-256 of source), concatenation into an investigation package
-- `src/integrations/evidenceVideoAdapter.js` — frontend-facing interface that
-  calls a new backend endpoint (e.g. `POST /api/v1/evidence/video-package`)
+```
+Existing RailShield system
+  + VisionProvider interface
+  + YOLOX/ONNX Runtime design
+```
 
-**Dependencies to install:** `ffmpeg` binary in the deploy environment
-(system package, not a Python/npm dependency) — free, no license cost (LGPL/GPL
-depending on build config; use the LGPL build to avoid GPL codecs if that
-matters for distribution)
+- **Existing RailShield system:** unchanged — the Cesium/God's Eye View
+  foundation, FastAPI backend, evidence ledger, telemetry ingest, WhatsApp
+  operations, all as audited in `docs/architecture.md`. Nothing here is
+  being rewritten.
+- **`VisionProvider` interface:** the adapter contract RailShield's own code
+  will call — `src/integrations/visionAdapter.js` is the scaffolded seam for
+  this; the class inside it should be named `VisionProvider` to match the
+  locked decision. Its structured result shape (asset, image/video,
+  timestamp, GPS, detected_object, class, confidence, bounding_box,
+  segmentation, model, model_version, inference_timestamp,
+  `evidence_state: "DERIVED"`) is documented in `docs/vision-decision.md`
+  and does not change here.
+- **YOLOX/ONNX Runtime design:** YOLOX (Apache-2.0) exported to ONNX,
+  served via ONNX Runtime (MIT, CPU) behind `VisionProvider`, called from a
+  new FastAPI endpoint. Design only in this phase — see "What this phase
+  does NOT include" below for what's still gated.
+- **Also cleared to proceed independently (no new decision needed):**
+  evidence-video generation via `ffmpeg` behind
+  `evidenceVideoAdapter.js` — this was already scoped in an earlier pass,
+  carries no licensing or infrastructure decision, and isn't blocked by
+  anything in this document. Sequencing it is a separate call from the
+  vision/photogrammetry decisions above.
 
-**Files to change:** `railwatch/evidence-ledger.js` (add "generate evidence
-package" action), `railwatch/backend/render.yaml` (ensure ffmpeg is available
-in the Render build image)
+**What this phase does NOT include:** installing YOLOX/ONNX Runtime,
+exporting a model, writing `railwatch/backend/vision_analysis.py`, or
+touching `main.py`'s incident contract. Those are real build steps that
+happen once Phase 1 is explicitly greenlit for implementation — this
+section is the locked design, not the build.
 
-**Risk:** low. Pure addition, no existing endpoint touched.
+## PHASE 2
 
-### Phase 2 — Photogrammetry (OpenDroneMap)
-**Files to add:**
-- `railwatch/backend/photogrammetry_jobs.py` — job submission/status polling
-  against a NodeODM instance
-- Wire `src/integrations/photogrammetryAdapter.js` to a new
-  `POST /api/v1/evidence/photogrammetry-job` + `GET .../{job_id}` pair
+```
+Separate photogrammetry worker architecture
+  + NodeODM/OpenDroneMap adapter
+  + R2 object storage
+```
 
-**Dependencies:** a running NodeODM instance (Docker) — this is
-infrastructure, not a code dependency; needs a hosting decision before coding
-starts (self-hosted container next to the FastAPI backend, or separate)
+- **Separate photogrammetry worker architecture:** documented in
+  `docs/photogrammetry-decision.md` — a standalone host running NodeODM,
+  never inside the Render web service, provider-agnostic (no VPS/cloud
+  vendor chosen yet).
+- **NodeODM/OpenDroneMap adapter:** `src/integrations/photogrammetryAdapter.js`
+  is the scaffolded seam; wiring it to a real `POST .../photogrammetry-job`
+  + `GET .../{job_id}` pair happens only once a worker actually exists.
+- **R2 object storage:** Cloudflare R2 as the provisional target for large
+  evidence/media/3D artifacts, kept behind a storage adapter (not yet
+  created in `src/integrations/` — add it when this phase starts) so the
+  provider can change later without touching call sites.
 
-**Environment variables:** `RAILWATCH_ODM_ENDPOINT`, `RAILWATCH_ODM_API_KEY`
+**Trigger to start building this phase:** the first production customer
+that actually requires photogrammetry. Not before.
 
-**Risk:** medium — compute/storage cost for reconstruction jobs; needs a
-queue so large jobs don't block the request thread (Redis is already a
-dependency, can back a simple job queue)
+**What this phase does NOT include:** provisioning a VM, deploying NodeODM
+anywhere, creating an R2 bucket or account, or writing
+`railwatch/backend/photogrammetry_jobs.py`. Early testing in the meantime
+uses local/offline NodeODM via Docker on a developer machine only (Option A
+in `docs/compute-architecture.md`), not deployed infrastructure.
 
-**Blocked on:** your decision on where NodeODM runs and expected image-set
-sizes
+## PHASE 3
 
-### Phase 3 — Vision AI
-**Blocked on:** provider selection. visualgpt.io did not verify as fit for
-purpose (see integrations.md). Two real paths:
-1. Self-hosted open-source detection model — no per-call cost, more setup
-2. A documented vendor vision API — faster to start, ongoing cost, needs a
-   decision under rule #11 ("no paid services unless absolutely necessary")
+```
+Railway-specific model training/evaluation
+```
 
-**Files to add once decided:** `railwatch/backend/vision_analysis.py`,
-wire `src/integrations/visionAdapter.js`
+- A separate effort from Phase 1's general-purpose YOLOX baseline: training
+  or fine-tuning a model against an actual labeled railway-defect dataset
+  (fishplate cracks, ballast degradation, fastener loss, etc.).
+- Needs its own dataset decision first — none has been identified or
+  verified. Not scoped in detail yet; this phase exists as a placeholder so
+  it's never conflated with Phase 1's general object detection.
+- `VisionProvider`'s adapter design (Phase 1) is what makes this phase
+  possible without a rewrite later: swapping in a trained railway model
+  means replacing what's behind the adapter, not changing how RailShield
+  calls it.
 
-**Risk:** low technical risk, real cost/vendor-lock decision needed first
+## Evidence-state extension (cuts across Phase 1 and Phase 2)
 
-### Deferred — Offline field capture (Meshtastic / PotatoMesh)
-Not scheduled. The existing telemetry ingest + WhatsApp channel already
-tolerate intermittent connectivity at the application layer (retry, queue).
-A LoRa mesh layer is a hardware investment; revisit if a customer's field
-sites genuinely have no cellular/WiFi at all.
-
-## Evidence-state extension (cuts across phases)
-
-Add to the existing incident contract in `railwatch/backend/main.py`:
+Still pending, unchanged from the earlier pass — add to the existing
+incident contract in `railwatch/backend/main.py` once either phase starts
+touching the backend:
 - `evidence_state: Literal["VERIFIED","DERIVED","INFERRED","DISPUTED","UNKNOWN"]`
-- `content_hash: str` (SHA-256) on any `media_url`-bearing record, computed at
-  ingest time in the existing `/api/v1/telemetry/ingest` path
+- `content_hash: str` (SHA-256) on any `media_url`-bearing record
 
-This is additive to `TelemetryBreachAlert`/`IncidentContext` — no breaking
-change to the existing contract as long as the new fields have safe defaults
-(`evidence_state` default `"UNKNOWN"`, `content_hash` optional).
+Additive only — safe defaults (`evidence_state` default `"UNKNOWN"`,
+`content_hash` optional), no breaking change to
+`TelemetryBreachAlert`/`IncidentContext`.
 
-## Risks (overall)
+## Risks (overall, carried over)
 
-- **Exposed credential:** a GitHub token was shared in plaintext in this
-  session to enable the clone — it should be rotated regardless of any of
-  the above.
-- **Photogrammetry compute cost** is the main budget unknown — needs a
-  hosting decision before Phase 2 starts.
-- **Vision AI vendor choice** needs a decision before Phase 3 starts —
-  no vendor has been selected or contacted.
-- Everything in Phase 1 is safe to build without further sign-off; Phases 2–3
-  need the decisions above first.
+- **Exposed credential:** a GitHub token was shared in plaintext earlier in
+  this project's session history — it should be rotated if that hasn't
+  happened yet, independent of anything else in this plan.
+- Phase 2's cost is the main open budget question, and is deliberately
+  deferred until a paying customer justifies it.
+- Phase 3 needs a dataset decision before it can be scoped further.
 
 ## What was implemented this pass
 
-- `docs/integrations.md`, `docs/architecture.md`, `docs/implementation-plan.md`
-- `src/integrations/` — interface-only adapters (see file headers), not wired
-  to any backend endpoint yet, so this pass has zero runtime effect on the
-  running app
+Nothing. This is a planning document update only — no dependencies
+installed, no production code modified, no infrastructure provisioned.
