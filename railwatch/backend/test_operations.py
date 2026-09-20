@@ -6,16 +6,33 @@ import os
 import time
 import unittest
 
-os.environ.setdefault("RAILWATCH_INGEST_KEY", "test-ingest")
-os.environ.setdefault("RAILWATCH_ALLOWED_ORIGINS", "http://testserver")
-os.environ["RAILWATCH_SIGNING_SECRET"] = "test-signing-secret"
-os.environ["RAILWATCH_OPERATOR_SECRET"] = "test-operator-secret"
-os.environ["RAILWATCH_OPERATOR_BOOTSTRAP_KEY"] = "test-ingest"
-os.environ.setdefault("RAILWATCH_DEFAULT_TENANT", "Tenant-A")
-
 from fastapi.testclient import TestClient
 
 from main import app
+
+
+_ENV_OVERRIDES = {
+    "RAILWATCH_INGEST_KEY": "test-ingest",
+    "RAILWATCH_ALLOWED_ORIGINS": "http://testserver",
+    "RAILWATCH_SIGNING_SECRET": "test-signing-secret",
+    "RAILWATCH_OPERATOR_SECRET": "test-operator-secret",
+    "RAILWATCH_OPERATOR_BOOTSTRAP_KEY": "test-ingest",
+    "RAILWATCH_DEFAULT_TENANT": "Tenant-A",
+}
+_PREVIOUS_VALUES = {key: os.environ.get(key) for key in _ENV_OVERRIDES}
+
+
+def setUpModule():
+    for key, value in _ENV_OVERRIDES.items():
+        os.environ[key] = value
+
+
+def tearDownModule():
+    for key, previous in _PREVIOUS_VALUES.items():
+        if previous is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = previous
 
 
 def sample_alert(event_id="OPS-1"):
