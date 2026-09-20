@@ -98,17 +98,16 @@ try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
       await page.waitForSelector('#demo-alert', { timeout: 15_000 });
       await page.click('#demo-alert');
-      await page.waitForSelector('.alert', { timeout: 10_000 });
-
-      const firstAlert = await page.$('.alert');
-      assert(firstAlert);
-      await firstAlert.click();
+      // The current operator flow opens the incident workspace automatically
+      // when the demo event is received. There is no requirement to click the
+      // legacy alert-feed row first.
+      await page.waitForSelector('#incident-popover.visible', { timeout: 10_000 });
       await page.evaluate((event) => {
         if (typeof window.showIncident !== 'function') throw new Error('showIncident renderer is not available');
         window.showIncident(event);
         document.dispatchEvent(new CustomEvent('railwatch:incident', { detail: event }));
       }, demoEvent);
-      await page.waitForSelector('#incident-popover', { timeout: 5_000 });
+      await page.waitForSelector('#incident-popover.visible', { timeout: 5_000 });
 
       await page.evaluate(() => document.dispatchEvent(new CustomEvent('railwatch:intelligence-refresh')));
       await page.waitForFunction(() => Boolean(document.querySelector('#railwatch-intelligence-panel')), { timeout: 5_000 });
