@@ -1,11 +1,30 @@
 import os
 import unittest
 
-os.environ.setdefault("RAILWATCH_INGEST_KEY", "test-ingest")
-os.environ.setdefault("RAILWATCH_ALLOWED_ORIGINS", "http://testserver")
 from fastapi.testclient import TestClient
 
 from main import app
+
+
+_ENV_OVERRIDES = {
+    "RAILWATCH_INGEST_KEY": "test-ingest",
+    "RAILWATCH_ALLOWED_ORIGINS": "http://testserver",
+    "RAILWATCH_DEMO_MODE": "true",
+}
+_PREVIOUS_VALUES = {key: os.environ.get(key) for key in _ENV_OVERRIDES}
+
+
+def setUpModule():
+    for key, value in _ENV_OVERRIDES.items():
+        os.environ[key] = value
+
+
+def tearDownModule():
+    for key, previous in _PREVIOUS_VALUES.items():
+        if previous is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = previous
 
 
 class GenericTelemetryContractTests(unittest.TestCase):
