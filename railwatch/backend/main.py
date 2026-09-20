@@ -230,6 +230,62 @@ async def install_whatsapp() -> None:
     install(app, manager, store)
 
 
+@app.on_event("startup")
+async def install_ai_intelligence() -> None:
+    from ai_intelligence import install
+    install(app, manager)
+
+
+def _production_config_errors() -> list[str]:
+    if _demo_mode():
+        return []
+    errors: list[str] = []
+    if ALLOW_ALL_ORIGINS:
+        errors.append("RAILWATCH_ALLOWED_ORIGINS must not be wildcard in production")
+    if not ALLOWED_ORIGINS:
+        errors.append("RAILWATCH_ALLOWED_ORIGINS is required in production")
+    for secret_name, value in (
+        ("RAILWATCH_INGEST_KEY", INGEST_KEY),
+        ("RAILWATCH_WS_KEY", WS_KEY),
+        ("RAILWATCH_SIGNING_SECRET", os.getenv("RAILWATCH_SIGNING_SECRET", "")),
+        ("RAILWATCH_OPERATOR_SECRET", os.getenv("RAILWATCH_OPERATOR_SECRET", "")),
+    ):
+        if not value:
+            errors.append(f"{secret_name} is missing")
+    if os.getenv("RAILWATCH_REQUIRE_PERSISTENCE", "false").lower() in {"1", "true", "yes", "on"} and not store.database_url:
+        errors.append("DATABASE_URL is required for durable production persistence")
+    return errors
+
+
+@app.get("/readyz")
+def readyz() -> dict[str, Any]:
+    errors = _production_config_errors()
+    storage = store.health()
+    if store.required and not storage.get("available"):
+        errors.append("durable event store unavailable")
+    redis_ready = True
+    redis_url = os.getenv("RAILWATCH_REDIS_URL", "").strip()
+    if redis_url:
+        try:
+            import redis
+            redis.Redis.from_url(redis_url, socket_connect_timeout=1, socket_timeout=1).ping()
+        except Exception:
+            redis_ready = False
+            errors.append("redis event bus unavailable")
+    payload = {
+        "status": "ready" if not errors else "not_ready",
+        "service": "railwatch-telemetry",
+        "build": {"commit": BUILD_SHA, "branch": BUILD_BRANCH, "instance": INSTANCE_ID},
+        "storage": storage,
+        "redis": {"configured": bool(redis_url), "available": redis_ready},
+        "checks": {"configuration": not bool(_production_config_errors()), "persistence": bool(storage.get("available")) if store.required else True, "redis": redis_ready},
+        "errors": errors,
+    }
+    if errors:
+        raise HTTPException(status_code=503, detail=payload)
+    return payload
+
+
 @app.get("/healthz")
 def healthz() -> dict[str, Any]:
     return {
