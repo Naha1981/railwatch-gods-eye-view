@@ -106,6 +106,9 @@ try {
   assert.equal(health.body?.status, 'ok');
   assert.equal(health.body?.service, 'railwatch-telemetry');
   assert.ok(health.body?.build?.commit, 'healthz missing build commit');
+  if (process.env.RAILWATCH_EXPECT_PRODUCTION === 'true') {
+    assert.equal(health.body?.demo_mode, false, 'production Render service is still running in demo mode');
+  }
 
   const whatsappHealth = await request('/api/v1/whatsapp/health');
   assert.equal(whatsappHealth.response.status, 200, `WhatsApp health returned HTTP ${whatsappHealth.response.status}`);
