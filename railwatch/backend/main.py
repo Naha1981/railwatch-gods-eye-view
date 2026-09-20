@@ -82,11 +82,15 @@ ALLOWED_ORIGINS = [x.strip() for x in ALLOWED_ORIGINS_RAW.split(",") if x.strip(
 INGEST_KEY = os.getenv("RAILWATCH_INGEST_KEY", "")
 WS_KEY = os.getenv("RAILWATCH_WS_KEY", INGEST_KEY)
 def _demo_mode() -> bool:
-    # Read on every call rather than caching at import time. A module-level
-    # constant here is evaluated once, the first time `main` is imported
-    # anywhere in the process -- which made this permanently wrong whenever a
-    # test file (or any other importer) ran before RAILWATCH_DEMO_MODE was set.
-    return os.getenv("RAILWATCH_DEMO_MODE", "false").lower() in {"1", "true", "yes", "on"}
+    # Read on every call rather than caching at import time. Production `main`
+    # deployments fail closed to non-demo mode unless a separate explicit
+    # override is enabled for a controlled sales environment.
+    requested = os.getenv("RAILWATCH_DEMO_MODE", "false").lower() in {"1", "true", "yes", "on"}
+    render_branch = os.getenv("RENDER_GIT_BRANCH", "").strip().lower()
+    allow_demo_on_main = os.getenv("RAILWATCH_ALLOW_DEMO_ON_MAIN", "false").lower() in {"1", "true", "yes", "on"}
+    if render_branch == "main" and not allow_demo_on_main:
+        return False
+    return requested
 MAX_EVENTS = int(os.getenv("RAILWATCH_MAX_EVENTS", "2000"))
 BUILD_SHA = os.getenv("RENDER_GIT_COMMIT") or os.getenv("RAILWATCH_BUILD_SHA") or "local"
 BUILD_BRANCH = os.getenv("RENDER_GIT_BRANCH") or os.getenv("RAILWATCH_BUILD_BRANCH") or "local"
