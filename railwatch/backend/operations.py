@@ -84,9 +84,17 @@ def _record_audit(action: str, event_id: str | None, actor: str, tenant: str, de
     return body
 
 
+def _normalize_severity(raw: Any) -> str:
+    # Severity may arrive as a Severity(str, Enum) member (in-process) or a plain
+    # string (after JSON round-trip). str(Enum) yields "Severity.CRITICAL", not
+    # "CRITICAL" -- Enum.__str__ wins over the str mixin's __str__ -- so this must
+    # go through .value first when present, never a blind str().
+    return str(getattr(raw, "value", raw)).upper()
+
+
 def _rule_evaluation(payload: dict[str, Any]) -> dict[str, Any]:
     data = payload.get("data", {})
-    severity = str(data.get("severity", "INFO"))
+    severity = _normalize_severity(data.get("severity", "INFO"))
     alert_type = str(data.get("alert_type", ""))
     impact = str((data.get("incident") or {}).get("operational_impact", "")).upper()
     critical_breach = severity == "CRITICAL" and alert_type == "LINE_BREACH"
@@ -106,7 +114,7 @@ def _rule_evaluation(payload: dict[str, Any]) -> dict[str, Any]:
 def _incident_record(payload: dict[str, Any]) -> dict[str, Any]:
     data = payload.get("data", {})
     event_id = str(data.get("event_id"))
-    severity = str(data.get("severity", "INFO"))
+    severity = _normalize_severity(data.get("severity", "INFO"))
     occurred = data.get("timestamp") or _utc_now().isoformat()
     try:
         occurred_at = datetime.fromisoformat(str(occurred).replace("Z", "+00:00"))
@@ -224,6 +232,13 @@ def parse_operator_token(token: str) -> dict[str, Any]:
 
 
 def install(app: Any, manager: Any, store: Any) -> None:
+    # Reentry guard: without this, every ASGI startup-lifecycle re-entry (each
+    # TestClient(app) context, or any app re-init) re-wraps _store_and_broadcast
+    # in another nested layer and re-registers every route below a second time.
+    if getattr(app.state, "railwatch_operations_installed", False):
+        return
+    app.state.railwatch_operations_installed = True
+
     import main
 
     original = main._store_and_broadcast

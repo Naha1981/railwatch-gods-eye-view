@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -81,7 +81,12 @@ ALLOW_ALL_ORIGINS = ALLOWED_ORIGINS_RAW.strip() == "*"
 ALLOWED_ORIGINS = [x.strip() for x in ALLOWED_ORIGINS_RAW.split(",") if x.strip() and x.strip() != "*"]
 INGEST_KEY = os.getenv("RAILWATCH_INGEST_KEY", "")
 WS_KEY = os.getenv("RAILWATCH_WS_KEY", INGEST_KEY)
-DEMO_MODE = os.getenv("RAILWATCH_DEMO_MODE", "false").lower() in {"1", "true", "yes", "on"}
+def _demo_mode() -> bool:
+    # Read on every call rather than caching at import time. A module-level
+    # constant here is evaluated once, the first time `main` is imported
+    # anywhere in the process -- which made this permanently wrong whenever a
+    # test file (or any other importer) ran before RAILWATCH_DEMO_MODE was set.
+    return os.getenv("RAILWATCH_DEMO_MODE", "false").lower() in {"1", "true", "yes", "on"}
 MAX_EVENTS = int(os.getenv("RAILWATCH_MAX_EVENTS", "2000"))
 BUILD_SHA = os.getenv("RENDER_GIT_COMMIT") or os.getenv("RAILWATCH_BUILD_SHA") or "local"
 BUILD_BRANCH = os.getenv("RENDER_GIT_BRANCH") or os.getenv("RAILWATCH_BUILD_BRANCH") or "local"
@@ -232,7 +237,7 @@ def healthz() -> dict[str, Any]:
         "service": "railwatch-telemetry",
         "connections": len(manager.active),
         "events": len(manager.events),
-        "demo_mode": DEMO_MODE,
+        "demo_mode": _demo_mode(),
         "build": {
             "commit": BUILD_SHA,
             "branch": BUILD_BRANCH,
@@ -256,7 +261,7 @@ def recent_events(limit: int = 100) -> list[dict[str, Any]]:
 
 @app.get("/api/v1/whatsapp/session")
 def whatsapp_demo_session() -> dict[str, Any]:
-    if not DEMO_MODE:
+    if not _demo_mode():
         raise HTTPException(status_code=404, detail="Demo UI session disabled")
     from operations import make_operator_token
     tenant = os.getenv("RAILWATCH_DEFAULT_TENANT", "NahaLabs-RailWatch").strip() or "NahaLabs-RailWatch"
@@ -266,7 +271,7 @@ def whatsapp_demo_session() -> dict[str, Any]:
 @app.websocket("/ws/v1/c2-stream")
 async def c2_stream(websocket: WebSocket) -> None:
     token = websocket.query_params.get("token")
-    if not DEMO_MODE and not _safe_equal(token, WS_KEY):
+    if not _demo_mode() and not _safe_equal(token, WS_KEY):
         await websocket.close(code=1008)
         return
     await manager.connect(websocket)
@@ -286,24 +291,29 @@ async def ingest_line_breach(
     return await _store_and_broadcast(alert, x_idempotency_key or alert.event_id)
 
 
-_rate_window_started = time.monotonic()
-_rate_count = 0
+_rate_buckets: dict[str, tuple[float, int]] = {}
 RATE_LIMIT = int(os.getenv("RAILWATCH_DEMO_RATE_LIMIT_PER_MIN", "30"))
 
 
-def demo_rate_guard() -> None:
-    global _rate_window_started, _rate_count
+def demo_rate_guard(request: Request) -> None:
+    # Keyed per client IP rather than one process-wide counter, so a single
+    # caller can't exhaust the shared budget for everyone hitting this public
+    # demo endpoint. Best-effort: a client behind a shared NAT/proxy without
+    # forwarded-for handling still shares a bucket with others on that IP.
+    client_ip = request.client.host if request.client else "unknown"
     now = time.monotonic()
-    if now - _rate_window_started >= 60:
-        _rate_window_started, _rate_count = now, 0
-    _rate_count += 1
-    if _rate_count > RATE_LIMIT:
+    window_started, count = _rate_buckets.get(client_ip, (now, 0))
+    if now - window_started >= 60:
+        window_started, count = now, 0
+    count += 1
+    _rate_buckets[client_ip] = (window_started, count)
+    if count > RATE_LIMIT:
         raise HTTPException(status_code=429, detail="Demo rate limit exceeded")
 
 
 @app.post("/api/v1/demo/line-breach", status_code=status.HTTP_202_ACCEPTED)
 async def demo_line_breach(_: None = Depends(demo_rate_guard)) -> dict[str, Any]:
-    if not DEMO_MODE:
+    if not _demo_mode():
         raise HTTPException(status_code=404, detail="Demo mode disabled")
 
     # These are deliberately labelled demo assets. They are placeholders for later

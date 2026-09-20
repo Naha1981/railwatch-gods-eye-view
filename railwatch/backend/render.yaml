@@ -31,7 +31,11 @@ services:
       - key: RAILWATCH_OPERATOR_SECRET
         generateValue: true
       - key: RAILWATCH_DEMO_MODE
-        value: "true"
+        # Deliberately not defaulted to "true". In this mode /ws/v1/c2-stream
+        # and /api/v1/whatsapp/session require no authentication at all. Set
+        # this explicitly per-environment in the Render dashboard -- "true"
+        # only for a sales demo you control, never for a pilot deployment.
+        sync: false
       - key: RAILWATCH_DEFAULT_TENANT
         value: NahaLabs-RailWatch
       - key: RAILWATCH_REQUIRE_PERSISTENCE

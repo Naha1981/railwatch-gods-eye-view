@@ -4,17 +4,40 @@ import json
 import os
 import unittest
 
-os.environ["RAILWATCH_DEMO_MODE"] = "true"
-os.environ["RAILWATCH_WHATSAPP_ENABLED"] = "true"
-os.environ["WHATSAPP_WEBHOOK_SECRET"] = "test-whatsapp-secret"
-os.environ["RAILWATCH_DEFAULT_TENANT"] = "NahaLabs-Demo"
-os.environ["RAILWATCH_ALLOWED_ORIGINS"] = "http://testserver"
-os.environ["RAILWATCH_OPERATOR_SECRET"] = "test-operator-secret"
-os.environ["RAILWATCH_INGEST_KEY"] = "test-ingest"
-
 from fastapi.testclient import TestClient
 
 from main import app
+
+_ENV_OVERRIDES = {
+    "RAILWATCH_DEMO_MODE": "true",
+    "RAILWATCH_WHATSAPP_ENABLED": "true",
+    "WHATSAPP_WEBHOOK_SECRET": "test-whatsapp-secret",
+    "RAILWATCH_DEFAULT_TENANT": "NahaLabs-Demo",
+    "RAILWATCH_ALLOWED_ORIGINS": "http://testserver",
+    "RAILWATCH_OPERATOR_SECRET": "test-operator-secret",
+    "RAILWATCH_INGEST_KEY": "test-ingest",
+}
+_previous_values: dict[str, str | None] = {}
+
+
+def setUpModule():
+    # unittest discover imports every test file (running its top-level code)
+    # during collection, before any test method anywhere runs. Setting these
+    # unconditionally at module top level meant this file's values leaked into
+    # every other file's tests for the whole process. setUpModule instead
+    # runs immediately before *this module's* tests specifically -- by which
+    # point every earlier-sorted module has already finished running.
+    for key, value in _ENV_OVERRIDES.items():
+        _previous_values[key] = os.environ.get(key)
+        os.environ[key] = value
+
+
+def tearDownModule():
+    for key, previous in _previous_values.items():
+        if previous is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = previous
 
 
 class WhatsAppIntegrationTests(unittest.TestCase):

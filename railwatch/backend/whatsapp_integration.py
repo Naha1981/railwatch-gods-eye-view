@@ -88,9 +88,21 @@ class RailWatchWhatsApp:
         self.manager = manager
         self.store = store
         self.persistence = WhatsAppPersistence()
-        self.enabled = _flag("RAILWATCH_WHATSAPP_ENABLED")
-        self.auto_alerts = _flag("RAILWATCH_WHATSAPP_AUTO_ALERTS")
         self.install_once = False
+
+    @property
+    def enabled(self) -> bool:
+        # Read live rather than freezing at __init__ time. The service is a
+        # per-app singleton constructed on the first ASGI startup anywhere in
+        # the process (see module-level install()), so a frozen attribute
+        # here stuck at whatever RAILWATCH_WHATSAPP_ENABLED happened to be at
+        # that first, possibly-unrelated startup for the service's entire
+        # lifetime -- including every later request.
+        return _flag("RAILWATCH_WHATSAPP_ENABLED")
+
+    @property
+    def auto_alerts(self) -> bool:
+        return _flag("RAILWATCH_WHATSAPP_AUTO_ALERTS")
 
     def _tenant_from_claims(self, authorization: str | None) -> str:
         return str(_operator_claims(authorization)["tenant"])

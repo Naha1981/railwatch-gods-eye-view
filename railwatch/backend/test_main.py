@@ -1,4 +1,5 @@
 import os
+import unittest
 
 os.environ.setdefault("RAILWATCH_INGEST_KEY", "test-ingest")
 os.environ.setdefault("RAILWATCH_WS_KEY", "test-ws")
@@ -7,9 +8,6 @@ os.environ.setdefault("RAILWATCH_ALLOWED_ORIGINS", "http://testserver")
 from fastapi.testclient import TestClient
 
 from main import app
-
-
-client = TestClient(app)
 
 
 def sample_alert(event_id: str = "EVT-1"):
@@ -25,22 +23,28 @@ def sample_alert(event_id: str = "EVT-1"):
     }
 
 
-def test_healthz():
-    response = client.get("/healthz")
-    assert response.status_code == 200
-    assert response.json()["status"] == "ok"
+class MainTests(unittest.TestCase):
+    def test_healthz(self):
+        with TestClient(app) as client:
+            response = client.get("/healthz")
+            assert response.status_code == 200
+            assert response.json()["status"] == "ok"
+
+    def test_ingest_requires_auth(self):
+        with TestClient(app) as client:
+            response = client.post("/api/v1/telemetry/line-breach", json=sample_alert())
+            assert response.status_code == 401
+
+    def test_ingest_accepts_and_deduplicates(self):
+        with TestClient(app) as client:
+            headers = {"x-railwatch-key": "test-ingest"}
+            first = client.post("/api/v1/telemetry/line-breach", json=sample_alert(), headers=headers)
+            second = client.post("/api/v1/telemetry/line-breach", json=sample_alert(), headers=headers)
+            assert first.status_code == 202
+            assert first.json()["status"] == "accepted"
+            assert second.status_code == 202
+            assert second.json()["status"] == "duplicate"
 
 
-def test_ingest_requires_auth():
-    response = client.post("/api/v1/telemetry/line-breach", json=sample_alert())
-    assert response.status_code == 401
-
-
-def test_ingest_accepts_and_deduplicates():
-    headers = {"x-railwatch-key": "test-ingest"}
-    first = client.post("/api/v1/telemetry/line-breach", json=sample_alert(), headers=headers)
-    second = client.post("/api/v1/telemetry/line-breach", json=sample_alert(), headers=headers)
-    assert first.status_code == 202
-    assert first.json()["status"] == "accepted"
-    assert second.status_code == 202
-    assert second.json()["status"] == "duplicate"
+if __name__ == "__main__":
+    unittest.main()
