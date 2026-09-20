@@ -72,25 +72,38 @@ Transnet's 2025 reporting also identifies security-related incidents and cable t
 - Security: explicit origin allow-list, separate ingestion/WebSocket keys, input constraints, deduplication, sanitized auth errors.
 - Deployment: `render.yaml` for the API; static `railwatch/` UI can be served by Vercel or another static host.
 
-### Not production-ready yet
+### Current production status
 
-- Replace process memory with Redis or a managed event bus.
-- Add PostgreSQL/PostGIS persistence and immutable event/audit records.
-- Add role-based authentication and operator tenancy.
-- Add rate limiting at the gateway and per-tenant quotas.
-- Add signed webhooks / HMAC for sensor integrations.
-- Add schema/version compatibility and replay support.
-- Add CCTV/media gateway using browser-compatible HLS/WebRTC. **Do not put RTSP directly in an HTML5 `<video>` element.**
-- Add observability, incident acknowledgement/closure, escalation timers and evidence export.
-- Perform POPIA, cybersecurity and rail-domain assurance review before production.
+The RailWatch MVP has crossed the original prototype-only gates:
 
-## Demo URL shape
+- PostgreSQL event persistence is implemented and can fail closed when required.
+- Redis-compatible event fan-out is configured for the production Render service.
+- Role-based operator authentication and tenant isolation are implemented.
+- Signed telemetry with HMAC timestamp/nonce replay protection is implemented.
+- Hash-linked server audit persistence is implemented.
+- Deterministic incident stages, SLA timers, acknowledgement/closure, replay and evidence export are implemented.
+- Guided operator UX is implemented: DETECT → LOCATE → VERIFY → RESPOND → RESOLVE → PROVE, with workspace minimize/full-screen behavior.
+- WhatsApp pairing, operator notification flow and incident alerting are integrated.
+- NahaLLM-backed incident brief, decision challenge and management summary are implemented behind authenticated, tenant-scoped endpoints with rate limiting.
+- A production `/readyz` readiness check covers configuration, PostgreSQL and Redis.
 
-Once the API is deployed, the browser can be opened as:
+### Remaining enterprise gates
 
-`/railwatch/?api=https://YOUR-RAILWATCH-API.example.com&token=YOUR_WS_KEY&ingest=YOUR_INGEST_KEY`
+- Enterprise SSO/IdP integration and centralized identity lifecycle.
+- Formal cybersecurity/POPIA/legal review, penetration testing and security assurance.
+- Backup/restore drill, retention policy, disaster recovery and operational runbooks.
+- Authoritative railway GIS/network datasets and real telemetry/CCTV adapters for a customer deployment.
+- Browser-compatible CCTV/media gateway where required; **do not put RTSP directly in an HTML5 `<video>` element.**
+- Rail-domain assurance and any customer/procurement-specific certification requirements.
+- Production WhatsApp provider credentials, NahaLLM gateway credentials and Render environment secrets must be configured outside Git.
 
-Never commit real keys to GitHub or put production credentials in a public URL.
+## Demo / production URL shape
+
+Production users should not receive API keys or operator bootstrap credentials in the URL. The supported browser access pattern is:
+
+`https://naha-railwatch.onrender.com/`
+
+The app obtains a short-lived operator session through the authenticated browser flow. Explicit demo environments may still use the legacy query-parameter flow, but those URLs must never be used for production credentials.
 
 ## Commercial packaging
 

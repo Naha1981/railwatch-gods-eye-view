@@ -4,7 +4,7 @@
   const ingestKey = q.get('ingest') || '';
   let current = null;
   let timer = null;
-  let operatorToken = '';
+  let operatorToken = sessionStorage.getItem('railwatch.operatorToken') || '';
 
   const panel = document.createElement('section');
   panel.id = 'railwatch-ops-assurance';
@@ -29,9 +29,12 @@
   async function refreshIncident(){
     if(!current) return;
     try{
+      const token = await getOperatorToken();
+      if(!token) return;
+      const auth = {authorization:`Bearer ${token}`, cache:'no-store'};
       const [slaRes, replayRes] = await Promise.all([
-        fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/sla`, {cache:'no-store'}),
-        fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/replay`, {cache:'no-store'})
+        fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/sla`, {headers:auth}),
+        fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/replay`, {headers:auth})
       ]);
       const sla = await slaRes.json();
       const replay = await replayRes.json();
@@ -46,12 +49,26 @@
   async function getOperatorToken(){
     if(operatorToken) return operatorToken;
     try{
-      const headers = ingestKey ? {'x-railwatch-key': ingestKey} : {};
-      const response = await fetch(`${apiBase}/api/v1/auth/demo-token?role=controller&operator=demo-controller`, {method:'POST', headers});
+      let response;
+      if(ingestKey){
+        response = await fetch(`${apiBase}/api/v1/auth/demo-token?role=controller&operator=demo-controller`, {method:'POST', headers:{'x-railwatch-key': ingestKey}});
+      } else {
+        const accessCode = window.prompt('RailWatch operator access code:');
+        if(!accessCode) return '';
+        response = await fetch(`${apiBase}/api/v1/auth/session`, {method:'POST', headers:{'content-type':'application/json','x-railwatch-bootstrap':accessCode}, body:JSON.stringify({})});
+      }
       if(!response.ok) return '';
-      const data = await response.json(); operatorToken = data.token || ''; return operatorToken;
+      const data = await response.json();
+      operatorToken = data.token || '';
+      if(operatorToken) sessionStorage.setItem('railwatch.operatorToken', operatorToken);
+      return operatorToken;
     }catch(e){ return ''; }
   }
+
+  window.RailWatchAuth = {
+    getOperatorToken,
+    clear: () => { operatorToken = ''; sessionStorage.removeItem('railwatch.operatorToken'); }
+  };
 
   async function performAction(action){
     if(!current) return;
@@ -59,6 +76,7 @@
     if(!token){ $('ops-health').textContent='DEMO AUTH UNAVAILABLE'; return; }
     try{
       const response = await fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/action`, {method:'POST', headers:{'content-type':'application/json','authorization':`Bearer ${token}`}, body:JSON.stringify({action})});
+      if(response.status === 401) { window.RailWatchAuth?.clear(); }
       if(response.ok){ document.dispatchEvent(new CustomEvent('railwatch:audit',{detail:{action:`OPERATOR_${action}`,event_id:current.event_id,actor:'demo-controller',timestamp:new Date().toISOString()}})); await refreshIncident(); }
     }catch(e){}
   }

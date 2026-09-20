@@ -1,6 +1,6 @@
 databases:
   - name: naha-railwatch-db
-    plan: free
+    plan: 0.5c-1g
     region: frankfurt
     databaseName: naha_railwatch_db
     user: naha_railwatch_db_user
@@ -8,12 +8,13 @@ databases:
 services:
   - type: keyvalue
     name: naha-railwatch-events
-    plan: free
+    plan: 1g
     region: frankfurt
     maxmemoryPolicy: allkeys_lru
 
   - type: web
     name: naha-railwatch-api
+    plan: 1c-2g
     runtime: python
     rootDir: railwatch/backend
     buildCommand: pip install -r requirements.txt
@@ -25,17 +26,16 @@ services:
       - key: RAILWATCH_WS_KEY
         sync: false
       - key: RAILWATCH_ALLOWED_ORIGINS
+        value: https://naha-railwatch.onrender.com
+      - key: RAILWATCH_OPERATOR_ACCESS_CODE
         sync: false
       - key: RAILWATCH_SIGNING_SECRET
         generateValue: true
       - key: RAILWATCH_OPERATOR_SECRET
         generateValue: true
       - key: RAILWATCH_DEMO_MODE
-        # Deliberately not defaulted to "true". In this mode /ws/v1/c2-stream
-        # and /api/v1/whatsapp/session require no authentication at all. Set
-        # this explicitly per-environment in the Render dashboard -- "true"
-        # only for a sales demo you control, never for a pilot deployment.
-        sync: false
+        value: "false"
+        # Enable only on a controlled sales/demo environment. Production must remain false.
       - key: RAILWATCH_DEFAULT_TENANT
         value: NahaLabs-RailWatch
       - key: RAILWATCH_REQUIRE_PERSISTENCE
@@ -52,7 +52,7 @@ services:
           type: keyvalue
           property: connectionString
       - key: RAILWATCH_APP_URL
-        sync: false
+        value: https://naha-railwatch.onrender.com
       - key: WHATSAPP_OPERATOR_URL
         value: https://my-own-whatsapp-2z5h.onrender.com
       - key: WHATSAPP_OPERATOR_API_KEY
@@ -69,3 +69,15 @@ services:
         sync: false
       - key: RAILWATCH_WHATSAPP_OPERATORS
         sync: false
+      - key: NAHALLM_URL
+        sync: false
+      - key: NAHALLM_API_KEY
+        sync: false
+      - key: NAHALLM_MODEL
+        value: balanced
+      - key: NAHALLM_TIMEOUT_SECONDS
+        value: "20"
+      - key: RAILWATCH_AI_RATE_LIMIT_PER_MIN
+        value: "10"
+      - key: RAILWATCH_AUTH_RATE_LIMIT_PER_MIN
+        value: "10"
