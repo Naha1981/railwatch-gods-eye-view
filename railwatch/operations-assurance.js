@@ -29,9 +29,12 @@
   async function refreshIncident(){
     if(!current) return;
     try{
+      const token = await getOperatorToken();
+      if(!token) return;
+      const auth = {authorization:`Bearer ${token}`, cache:'no-store'};
       const [slaRes, replayRes] = await Promise.all([
-        fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/sla`, {cache:'no-store'}),
-        fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/replay`, {cache:'no-store'})
+        fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/sla`, {headers:auth}),
+        fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/replay`, {headers:auth})
       ]);
       const sla = await slaRes.json();
       const replay = await replayRes.json();
@@ -73,6 +76,7 @@
     if(!token){ $('ops-health').textContent='DEMO AUTH UNAVAILABLE'; return; }
     try{
       const response = await fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/action`, {method:'POST', headers:{'content-type':'application/json','authorization':`Bearer ${token}`}, body:JSON.stringify({action})});
+      if(response.status === 401) { window.RailWatchAuth?.clear(); }
       if(response.ok){ document.dispatchEvent(new CustomEvent('railwatch:audit',{detail:{action:`OPERATOR_${action}`,event_id:current.event_id,actor:'demo-controller',timestamp:new Date().toISOString()}})); await refreshIncident(); }
     }catch(e){}
   }
