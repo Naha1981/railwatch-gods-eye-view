@@ -310,9 +310,17 @@ def storage_health() -> dict[str, Any]:
 
 
 @app.get("/api/v1/events")
-def recent_events(limit: int = 100) -> list[dict[str, Any]]:
+def recent_events(limit: int = 100, authorization: str | None = Header(default=None)) -> list[dict[str, Any]]:
     limit = max(1, min(limit, 500))
-    return list(manager.events.values())[-limit:]
+    events = list(manager.events.values())[-limit:]
+    if _demo_mode():
+        return events
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Operator authentication required")
+    from operations import parse_operator_token
+    claims = parse_operator_token(authorization.split(" ", 1)[1].strip())
+    tenant = str(claims.get("tenant") or "")
+    return [event for event in events if str(event.get("data", {}).get("tenant") or "") == tenant]
 
 
 @app.get("/api/v1/whatsapp/session")
