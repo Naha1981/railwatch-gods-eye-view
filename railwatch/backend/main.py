@@ -320,7 +320,7 @@ def recent_events(limit: int = 100, authorization: str | None = Header(default=N
     from operations import parse_operator_token
     claims = parse_operator_token(authorization.split(" ", 1)[1].strip())
     tenant = str(claims.get("tenant") or "")
-    return [event for event in events if str(event.get("data", {}).get("tenant") or "") == tenant]
+    return [event for event in events if str(event.get("operations", {}).get("tenant") or event.get("data", {}).get("tenant") or "") == tenant]
 
 
 @app.get("/api/v1/whatsapp/session")
