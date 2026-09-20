@@ -56,6 +56,11 @@
   }
 
   async function refreshStatus() {
+    if (!currentIncidentId) {
+      setMessage('AI intelligence activates when an incident is open.', 'warn');
+      buttons.forEach(button => { button.disabled = true; });
+      return;
+    }
     try {
       const data = await request('/api/v1/ai/status');
       const configured = Boolean(data.configured);
