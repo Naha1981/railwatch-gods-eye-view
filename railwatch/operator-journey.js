@@ -3,7 +3,7 @@
   const WORKSPACES = [
     ['incident-popover','INCIDENT'], ['.asset-operator','ASSET'], ['#railwatch-cctv-overlay','CCTV'],
     ['.dispatch-intelligence','RESPONSE'], ['.resolution-intelligence','RESOLUTION'], ['.evidence-ledger','CASE LEDGER'],
-    ['.audit-feed-panel','ACTIVITY'], ['.incident-history','HISTORY'], ['.whatsapp-panel','WHATSAPP']
+    ['.audit-feed-panel','ACTIVITY'], ['.incident-history','HISTORY'], ['.whatsapp-panel','WHATSAPP'], ['.ai-intelligence-panel','AI INTELLIGENCE']
   ];
   let currentStage = 'DETECT';
   let currentIncident = null;
@@ -191,7 +191,7 @@
   }
 
   function registerWorkspaceNodes() {
-    [['#incident-popover','incident'],['.audit-feed-panel','activity'],['.evidence-ledger','ledger'],['.incident-history','history'],['.asset-operator','asset'],['#railwatch-cctv-overlay','cctv'],['.dispatch-intelligence','dispatch'],['.resolution-intelligence','resolution'],['.whatsapp-panel','whatsapp']].forEach(([selector,type]) => {
+    [['#incident-popover','incident'],['.audit-feed-panel','activity'],['.evidence-ledger','ledger'],['.incident-history','history'],['.asset-operator','asset'],['#railwatch-cctv-overlay','cctv'],['.dispatch-intelligence','dispatch'],['.resolution-intelligence','resolution'],['.whatsapp-panel','whatsapp'],['.ai-intelligence-panel','ai']].forEach(([selector,type]) => {
       const node = document.querySelector(selector);
       if (node) { node.dataset.rwWorkspaceType = type; decorateWorkspace(node, type); }
     });
