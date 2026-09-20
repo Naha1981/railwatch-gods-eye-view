@@ -3,8 +3,6 @@ import unittest
 
 os.environ.setdefault("RAILWATCH_INGEST_KEY", "test-ingest")
 os.environ.setdefault("RAILWATCH_ALLOWED_ORIGINS", "http://testserver")
-os.environ.setdefault("RAILWATCH_DEMO_MODE", "false")
-
 from fastapi.testclient import TestClient
 
 from main import app
