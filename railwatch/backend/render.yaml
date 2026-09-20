@@ -35,6 +35,8 @@ services:
         generateValue: true
       - key: RAILWATCH_DEMO_MODE
         value: "false"
+      - key: RAILWATCH_ALLOW_DEMO_ON_MAIN
+        value: "false"
         # Enable only on a controlled sales/demo environment. Production must remain false.
       - key: RAILWATCH_DEFAULT_TENANT
         value: NahaLabs-RailWatch
