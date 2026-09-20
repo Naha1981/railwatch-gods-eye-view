@@ -1,16 +1,24 @@
 import os
 import unittest
 
-os.environ["RAILWATCH_DEMO_MODE"] = "true"
-os.environ["RAILWATCH_INGEST_KEY"] = "test-ingest"
-os.environ["RAILWATCH_WS_KEY"] = "test-ws"
-os.environ["RAILWATCH_ALLOWED_ORIGINS"] = "http://testserver"
-os.environ["RAILWATCH_SIGNING_SECRET"] = "test-signing-secret"
-os.environ["RAILWATCH_OPERATOR_SECRET"] = "test-operator-secret"
-os.environ["RAILWATCH_OPERATOR_BOOTSTRAP_KEY"] = "test-ingest"
-os.environ["RAILWATCH_DEFAULT_TENANT"] = "NahaLabs-Demo"
-os.environ.pop("NAHALLM_URL", None)
-os.environ.pop("NAHALLM_API_KEY", None)
+_ENV_OVERRIDES = {
+    "RAILWATCH_DEMO_MODE": "true",
+    "RAILWATCH_INGEST_KEY": "test-ingest",
+    "RAILWATCH_WS_KEY": "test-ws",
+    "RAILWATCH_ALLOWED_ORIGINS": "http://testserver",
+    "RAILWATCH_SIGNING_SECRET": "test-signing-secret",
+    "RAILWATCH_OPERATOR_SECRET": "test-operator-secret",
+    "RAILWATCH_OPERATOR_BOOTSTRAP_KEY": "test-ingest",
+    "RAILWATCH_DEFAULT_TENANT": "NahaLabs-Demo",
+    "NAHALLM_URL": "",
+    "NAHALLM_API_KEY": "",
+}
+_PREVIOUS_VALUES = {key: os.environ.get(key) for key in _ENV_OVERRIDES}
+for key, value in _ENV_OVERRIDES.items():
+    if value:
+        os.environ[key] = value
+    else:
+        os.environ.pop(key, None)
 
 from fastapi.testclient import TestClient
 
@@ -46,6 +54,14 @@ class AIIntelligenceTests(unittest.TestCase):
         with TestClient(app) as client:
             response = client.post("/api/v1/ai/incident/DOES-NOT-EXIST/brief", headers=auth())
             self.assertEqual(response.status_code, 404)
+
+
+def tearDownModule():
+    for key, previous in _PREVIOUS_VALUES.items():
+        if previous is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = previous
 
 
 if __name__ == "__main__":
