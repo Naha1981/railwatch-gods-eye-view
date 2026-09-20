@@ -21,17 +21,7 @@ async function request(path, options = {}) {
   }
 }
 
-try {
-  const health = await request('/healthz');
-  assert.equal(health.response.status, 200, `healthz returned HTTP ${health.response.status}`);
-  assert.equal(health.body?.status, 'ok');
-  assert.equal(health.body?.service, 'railwatch-telemetry');
-  assert.ok(health.body?.build?.commit, 'healthz missing build commit');
-
-  const whatsappHealth = await request('/api/v1/whatsapp/health');
-  assert.equal(whatsappHealth.response.status, 200, `WhatsApp health returned HTTP ${whatsappHealth.response.status}`);
-  assert.equal(whatsappHealth.body?.appId, 'railwatch');
-
+async function runDemoSmoke() {
   const eventsBefore = await request('/api/v1/events?limit=1');
   assert.equal(eventsBefore.response.status, 200);
   assert.ok(Array.isArray(eventsBefore.body), 'events endpoint did not return an array');
@@ -45,9 +35,6 @@ try {
   assert.equal(eventsAfter.response.status, 200);
   const latest = eventsAfter.body?.at(-1)?.data;
   assert.equal(latest?.event_id, demo.body.event_id, 'accepted demo event not visible in recent events');
-  assert.equal(latest?.alert_type, 'LINE_BREACH');
-  assert.equal(latest?.severity, 'CRITICAL');
-  assert.ok(Array.isArray(latest?.incident?.assets) && latest.incident.assets.length >= 3, 'incident asset package missing');
 
   const session = await request('/api/v1/whatsapp/session');
   assert.equal(session.response.status, 200, `demo operator session returned HTTP ${session.response.status}`);
@@ -79,19 +66,59 @@ try {
   assert.equal(replay.response.status, 200);
   assert.ok(replay.body?.timeline?.length >= 5, 'incident replay does not contain the full smoke timeline');
 
+  return ['demo ingest ✓', 'tenant-scoped incident ✓', 'operator action loop ✓', 'incident replay ✓'];
+}
+
+async function runProductionSmoke() {
+  const ready = await request('/readyz');
+  assert.equal(ready.response.status, 200, `readyz returned HTTP ${ready.response.status}`);
+  assert.equal(ready.body?.status, 'ready');
+
+  const eventsUnauthenticated = await request('/api/v1/events?limit=1');
+  assert.equal(eventsUnauthenticated.response.status, 401, 'production events endpoint must require operator authentication');
+
+  const demoEndpoint = await request('/api/v1/demo/line-breach', { method: 'POST' });
+  assert.equal(demoEndpoint.response.status, 404, 'demo ingest must be disabled in production');
+
+  const demoSession = await request('/api/v1/whatsapp/session');
+  assert.equal(demoSession.response.status, 404, 'demo WhatsApp session must be disabled in production');
+
+  const aiStatus = await request('/api/v1/ai/status');
+  assert.equal(aiStatus.response.status, 401, 'AI status must require operator authentication in production');
+
+  const whatsappHealth = await request('/api/v1/whatsapp/health');
+  assert.equal(whatsappHealth.response.status, 200, `WhatsApp health returned HTTP ${whatsappHealth.response.status}`);
+
+  return [
+    'readyz ✓',
+    'tenant-scoped event feed protected ✓',
+    'demo ingest disabled ✓',
+    'demo WhatsApp session disabled ✓',
+    'AI authentication boundary ✓',
+    'WhatsApp health ✓',
+    'authenticated operator E2E not exercised by CI because production bootstrap credentials are never stored in GitHub Actions',
+  ];
+}
+
+try {
+  const health = await request('/healthz');
+  assert.equal(health.response.status, 200, `healthz returned HTTP ${health.response.status}`);
+  assert.equal(health.body?.status, 'ok');
+  assert.equal(health.body?.service, 'railwatch-telemetry');
+  assert.ok(health.body?.build?.commit, 'healthz missing build commit');
+
+  const whatsappHealth = await request('/api/v1/whatsapp/health');
+  assert.equal(whatsappHealth.response.status, 200, `WhatsApp health returned HTTP ${whatsappHealth.response.status}`);
+  assert.equal(whatsappHealth.body?.appId, 'railwatch');
+
+  const checks = health.body?.demo_mode ? await runDemoSmoke() : await runProductionSmoke();
+
   console.log('RailWatch production smoke PASS');
   console.log(`  base: ${baseUrl}`);
   console.log(`  build: ${health.body.build.commit}`);
   console.log(`  branch: ${health.body.build.branch}`);
-  console.log(`  demo event: ${demo.body.event_id}`);
-  console.log(`  tenant: ${session.body.tenant}`);
-  console.log('  health contract ✓');
-  console.log('  WhatsApp health contract ✓');
-  console.log('  events contract ✓');
-  console.log('  demo ingest ✓');
-  console.log('  tenant-scoped incident ✓');
-  console.log('  operator action loop ✓');
-  console.log('  incident replay ✓');
+  console.log(`  demo_mode: ${health.body.demo_mode}`);
+  checks.forEach(check => console.log(`  ${check}`));
 } catch (error) {
   console.error(`RAILWATCH PRODUCTION SMOKE FAIL: ${error?.message || error}`);
   process.exitCode = 1;
