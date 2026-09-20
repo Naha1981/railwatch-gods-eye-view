@@ -56,6 +56,7 @@ jobs:
       - name: Exercise live production API with bounded recovery
         env:
           RAILWATCH_API_URL: https://naha-railwatch-api.onrender.com
+          RAILWATCH_EXPECT_PRODUCTION: 'true'
         run: |
           for attempt in 1 2; do
             echo "Production smoke attempt $attempt/2"
