@@ -91,7 +91,10 @@
   async function hydrateRecentIncident() {
     if (hasActiveIncident) return;
     try {
-      const response = await fetch(`${apiBase}/api/v1/events?limit=1`);
+      if (!q.get('ingest') && !sessionStorage.getItem('railwatch.operatorToken')) return;
+      const token = window.RailWatchAuth?.getOperatorToken ? await window.RailWatchAuth.getOperatorToken() : '';
+      if (!token) return;
+      const response = await fetch(`${apiBase}/api/v1/events?limit=1`, {headers:{authorization:`Bearer ${token}`}});
       if (!response.ok || hasActiveIncident) return;
       const events = await response.json();
       const latest = events?.at(-1)?.data;
