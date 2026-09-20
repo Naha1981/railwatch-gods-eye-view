@@ -2,6 +2,12 @@ import os
 import unittest
 
 os.environ["RAILWATCH_DEMO_MODE"] = "true"
+os.environ["RAILWATCH_INGEST_KEY"] = "test-ingest"
+os.environ["RAILWATCH_WS_KEY"] = "test-ws"
+os.environ["RAILWATCH_ALLOWED_ORIGINS"] = "http://testserver"
+os.environ["RAILWATCH_SIGNING_SECRET"] = "test-signing-secret"
+os.environ["RAILWATCH_OPERATOR_SECRET"] = "test-operator-secret"
+os.environ["RAILWATCH_OPERATOR_BOOTSTRAP_KEY"] = "test-ingest"
 os.environ["RAILWATCH_DEFAULT_TENANT"] = "NahaLabs-Demo"
 os.environ.pop("NAHALLM_URL", None)
 os.environ.pop("NAHALLM_API_KEY", None)
