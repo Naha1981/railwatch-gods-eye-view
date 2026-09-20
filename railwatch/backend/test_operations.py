@@ -11,6 +11,7 @@ os.environ.setdefault("RAILWATCH_ALLOWED_ORIGINS", "http://testserver")
 os.environ["RAILWATCH_SIGNING_SECRET"] = "test-signing-secret"
 os.environ["RAILWATCH_OPERATOR_SECRET"] = "test-operator-secret"
 os.environ["RAILWATCH_OPERATOR_BOOTSTRAP_KEY"] = "test-ingest"
+os.environ["RAILWATCH_DEMO_MODE"] = "false"
 os.environ.setdefault("RAILWATCH_DEFAULT_TENANT", "Tenant-A")
 
 from fastapi.testclient import TestClient
@@ -48,6 +49,18 @@ def operator_token(client, tenant_label="Tenant-A"):
 
 
 class OperationsContractTests(unittest.TestCase):
+    def test_browser_operator_session_and_event_feed_scope(self):
+        with TestClient(app) as client:
+            session = client.post("/api/v1/auth/session", headers={"x-railwatch-bootstrap": "test-ingest"}, json={})
+            self.assertEqual(session.status_code, 200)
+            token = session.json()["token"]
+            unauth = client.get("/api/v1/events?limit=10")
+            self.assertEqual(unauth.status_code, 401)
+            client.post("/api/v1/telemetry/line-breach", headers={"x-railwatch-key": "test-ingest"}, json=sample_alert("OPS-FEED"))
+            scoped = client.get("/api/v1/events?limit=10", headers={"authorization": f"Bearer {token}"})
+            self.assertEqual(scoped.status_code, 200)
+            self.assertTrue(any(item.get("data", {}).get("event_id") == "OPS-FEED" for item in scoped.json()))
+
     def test_demo_token_and_rbac_action(self):
         with TestClient(app) as client:
             token_response = client.post("/api/v1/auth/demo-token?role=controller&operator=test-controller", headers={"x-railwatch-key": "test-ingest"})
