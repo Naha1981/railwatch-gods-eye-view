@@ -279,6 +279,28 @@ def install(app: Any, manager: Any, store: Any) -> None:
             _METRICS["signed_accepted"] += 1
         return result
 
+    _AUTH_BUCKETS: dict[str, tuple[float, int]] = {}
+
+    @app.post("/api/v1/auth/session")
+    def operator_session(
+        request: Request,
+        x_railwatch_bootstrap: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        client_ip = request.client.host if request.client else "unknown"
+        now = time.monotonic()
+        started, count = _AUTH_BUCKETS.get(client_ip, (now, 0))
+        if now - started >= 60:
+            started, count = now, 0
+        count += 1
+        _AUTH_BUCKETS[client_ip] = (started, count)
+        if count > int(os.getenv("RAILWATCH_AUTH_RATE_LIMIT_PER_MIN", "10")):
+            raise HTTPException(status_code=429, detail="Authentication rate limit exceeded")
+        expected = os.getenv("RAILWATCH_OPERATOR_ACCESS_CODE") or os.getenv("RAILWATCH_OPERATOR_BOOTSTRAP_KEY")
+        if not expected or not hmac.compare_digest(x_railwatch_bootstrap or "", expected):
+            raise HTTPException(status_code=401, detail="Invalid operator access code")
+        tenant = _default_tenant()
+        return {"token": make_operator_token("browser-operator", "controller", tenant), "role": "controller", "tenant": tenant, "expires_in": 3600}
+
     @app.post("/api/v1/auth/demo-token")
     def demo_token(x_railwatch_key: str | None = Header(default=None), role: str = "controller", operator: str = "demo-controller") -> dict[str, Any]:
         expected = os.getenv("RAILWATCH_OPERATOR_BOOTSTRAP_KEY") or os.getenv("RAILWATCH_INGEST_KEY", "")
