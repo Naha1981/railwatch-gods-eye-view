@@ -10,7 +10,9 @@
     button.textContent = 'CALCULATING RESPONSE…';
     button.disabled = true;
     try {
-      const response = await fetch(`${apiBase}/api/v1/events?limit=1`);
+      const token = window.RailWatchAuth?.getOperatorToken ? await window.RailWatchAuth.getOperatorToken() : '';
+      if (!token) throw new Error('Operator authentication required');
+      const response = await fetch(`${apiBase}/api/v1/events?limit=1`, {headers:{authorization:`Bearer ${token}`}});
       if (!response.ok) throw new Error(`Event lookup failed: ${response.status}`);
       const events = await response.json();
       const data = events?.at(-1)?.data;
