@@ -25,6 +25,8 @@ services:
       - key: RAILWATCH_WS_KEY
         sync: false
       - key: RAILWATCH_ALLOWED_ORIGINS
+        value: https://naha-railwatch.onrender.com
+      - key: RAILWATCH_OPERATOR_ACCESS_CODE
         sync: false
       - key: RAILWATCH_SIGNING_SECRET
         generateValue: true
@@ -52,7 +54,7 @@ services:
           type: keyvalue
           property: connectionString
       - key: RAILWATCH_APP_URL
-        sync: false
+        value: https://naha-railwatch.onrender.com
       - key: WHATSAPP_OPERATOR_URL
         value: https://my-own-whatsapp-2z5h.onrender.com
       - key: WHATSAPP_OPERATOR_API_KEY
@@ -69,3 +71,15 @@ services:
         sync: false
       - key: RAILWATCH_WHATSAPP_OPERATORS
         sync: false
+      - key: NAHALLM_URL
+        sync: false
+      - key: NAHALLM_API_KEY
+        sync: false
+      - key: NAHALLM_MODEL
+        value: balanced
+      - key: NAHALLM_TIMEOUT_SECONDS
+        value: "20"
+      - key: RAILWATCH_AI_RATE_LIMIT_PER_MIN
+        value: "10"
+      - key: RAILWATCH_AUTH_RATE_LIMIT_PER_MIN
+        value: "10"
