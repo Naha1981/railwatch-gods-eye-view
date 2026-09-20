@@ -58,6 +58,20 @@ document.
   worker or evidence-video pipeline that would use it) — not as part of
   this decision-recording step.
 
+### 4. Evidence video (ffmpeg) → LGPL-only licensing boundary locked
+
+- ffmpeg itself was already the approved choice (see `docs/integrations.md`)
+  for evidence clipping/overlay/concatenation, behind the existing
+  `evidenceVideoAdapter.js` abstraction. This entry locks its
+  **build/configuration boundary**, added 2026-09-20:
+  - Use an **LGPL-compatible** ffmpeg build/configuration only.
+  - **Do not** enable `--enable-gpl` or `--enable-nonfree`, and do not link
+    GPL-only encoders (`libx264`, `libx265`), unless that specific component
+    is separately researched, documented, and approved on its own — not as
+    a side effect of this phase.
+  - ffmpeg stays behind `evidenceVideoAdapter.js` exactly as already
+    scaffolded — no change to that abstraction was needed for this boundary.
+
 ## VERIFIED FACTS (cross-cutting, carried over)
 
 - Render has no GPU instance type — verified directly against Render's own

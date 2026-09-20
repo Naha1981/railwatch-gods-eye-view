@@ -50,6 +50,54 @@ therefore already satisfied — there is no separate repo to pull in. Any future
   "prefer libraries over apps" rule.
 - **VERDICT: REJECTED — target app is unfinished. Use ffmpeg instead (see §2).**
 
+### TOOL: ffmpeg (evidence-video engine)
+- PURPOSE: clipping, timestamp/GPS/hash overlay burn-in, and concatenation
+  for evidence video packages
+- CURRENT REPO: [FFmpeg](https://ffmpeg.org) / `git.ffmpeg.org`
+- LICENSE — **licensing boundary, locked 2026-09-20:**
+  - FFmpeg's own core (`libavcodec`, `libavformat`, etc.) is **LGPL v2.1+**
+    when built with the project's *default* configuration.
+  - That default changes to **GPL** the moment the build is compiled with
+    `--enable-gpl` and links a GPL-licensed component — most commonly
+    `libx264` (H.264 encoding) or `libx265` (H.265 encoding). A GPL build
+    used inside a commercial product is a materially different obligation
+    than an LGPL one.
+  - `--enable-nonfree` (e.g. certain codec bindings, some hardware-vendor
+    libraries) is a separate, stricter flag that makes the resulting binary
+    **undistributable** under any open license at all — this must never be
+    enabled without a specific, separately-researched, separately-approved
+    reason.
+  - **RailShield's build/configuration must be LGPL-compatible: no
+    `--enable-gpl`, no `--enable-nonfree`, no linking against GPL-only
+    encoders (`libx264`, `libx265`) unless that is separately researched,
+    documented, and explicitly approved first.** This is a locked boundary,
+    not a default to drift past during implementation.
+- DEPENDENCIES: the `ffmpeg` binary in the deploy environment (system
+  package, not a Python/npm package)
+- SECURITY RISKS: standard subprocess-invocation hygiene — never pass
+  unsanitized user input into a shell-constructed ffmpeg command; use
+  argument arrays, not string concatenation
+- API/SDK: CLI, invoked as a subprocess from the backend
+- WHAT RAILWATCH WILL USE: an LGPL-only build — clipping, concatenation,
+  and overlay burn-in without any GPL or nonfree component
+- WHAT WE WILL NOT USE: `libx264`/`libx265` or any other GPL-licensed
+  encoder, and no `--enable-nonfree` component, unless a future, separate
+  decision explicitly approves one. Practical implication: where output
+  needs H.264-compatible video, use an LGPL/BSD-compatible encoder path
+  (e.g. `libopenh264`, which is BSD-licensed) or a non-re-encoding
+  stream-copy (`-c copy`) trim/concatenation where the source codec allows
+  it, rather than `libx264`.
+- IMPLEMENTATION FILES: `railwatch/backend/evidence_video.py` (not yet
+  written), `src/integrations/evidenceVideoAdapter.js` (already scaffolded,
+  interface-only — the abstraction FFmpeg stays behind; no change needed to
+  it for this licensing note)
+- ENVIRONMENT VARIABLES: none required for the binary itself
+- COST: $0
+- ALTERNATIVES: none needed — ffmpeg is the already-approved choice; this
+  entry exists to lock its licensing boundary, not to reopen the tool choice
+- **VERDICT: APPROVED, with the LGPL-only boundary above as a hard
+  constraint on the build/configuration used.**
+
 ### TOOL: ClawHub
 - PURPOSE: reusable agent skills for RailWatch workflows
 - CURRENT REPO: registry at clawhub.ai / `npm i -g clawhub`; CLI installs

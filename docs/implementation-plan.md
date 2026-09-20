@@ -31,9 +31,11 @@ Existing RailShield system
   does NOT include" below for what's still gated.
 - **Also cleared to proceed independently (no new decision needed):**
   evidence-video generation via `ffmpeg` behind
-  `evidenceVideoAdapter.js` — this was already scoped in an earlier pass,
-  carries no licensing or infrastructure decision, and isn't blocked by
-  anything in this document. Sequencing it is a separate call from the
+  `evidenceVideoAdapter.js` — this was already scoped in an earlier pass
+  and isn't blocked by anything in this document. Its licensing boundary is
+  now locked: **LGPL-compatible build only — no `--enable-gpl`, no
+  `--enable-nonfree`, no `libx264`/`libx265`** (see the dedicated ffmpeg
+  entry in `docs/integrations.md`). Sequencing it is a separate call from the
   vision/photogrammetry decisions above.
 
 **What this phase does NOT include:** installing YOLOX/ONNX Runtime,
