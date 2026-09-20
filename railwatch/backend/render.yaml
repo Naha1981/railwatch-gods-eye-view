@@ -1,6 +1,6 @@
 databases:
   - name: naha-railwatch-db
-    plan: free
+    plan: 0.5c-1g
     region: frankfurt
     databaseName: naha_railwatch_db
     user: naha_railwatch_db_user
@@ -8,12 +8,13 @@ databases:
 services:
   - type: keyvalue
     name: naha-railwatch-events
-    plan: free
+    plan: 1g
     region: frankfurt
     maxmemoryPolicy: allkeys_lru
 
   - type: web
     name: naha-railwatch-api
+    plan: 1c-2g
     runtime: python
     rootDir: railwatch/backend
     buildCommand: pip install -r requirements.txt
