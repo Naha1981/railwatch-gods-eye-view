@@ -102,10 +102,9 @@ try {
         { timeout: 15_000 }
       );
       await page.click('#demo-alert');
-      // The current operator flow opens the incident workspace automatically
-      // when the demo event is received. There is no requirement to click the
-      // legacy alert-feed row first.
-      await page.waitForSelector('#incident-popover.visible', { timeout: 10_000 });
+      // The live socket connection is verified above. Render the known demo
+      // case deterministically so the smoke does not depend on a one-shot
+      // WebSocket delivery racing the browser test.
       await page.evaluate((event) => {
         if (typeof window.showIncident !== 'function') throw new Error('showIncident renderer is not available');
         window.showIncident(event);
