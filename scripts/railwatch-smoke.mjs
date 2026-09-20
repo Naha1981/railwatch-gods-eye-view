@@ -97,6 +97,10 @@ try {
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
       await page.waitForSelector('#demo-alert', { timeout: 15_000 });
+      await page.waitForFunction(
+        () => document.querySelector('#ws-label')?.textContent?.trim() === 'CONNECTED',
+        { timeout: 15_000 }
+      );
       await page.click('#demo-alert');
       // The current operator flow opens the incident workspace automatically
       // when the demo event is received. There is no requirement to click the
