@@ -35,7 +35,8 @@ def _rate_guard(operator: str) -> None:
 
 def _incident_or_404(manager: Any, event_id: str) -> dict[str, Any]:
     for payload in reversed(list(manager.events.values())):
-        data = payload.get("data", {})
+        data = dict(payload.get("data", {}))
+        data["tenant"] = payload.get("operations", {}).get("tenant") or data.get("tenant")
         if data.get("event_id") == event_id:
             return data
     raise HTTPException(status_code=404, detail="Incident not found")
