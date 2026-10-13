@@ -56,6 +56,7 @@
   }
 
   async function refreshStatus() {
+    if (window.RailWatchMode.local) { setMessage('LOCAL DEMO - AI calls disabled. Rule-based demonstration only.', 'warn'); buttons.forEach(button => { button.disabled = true; }); return; }
     if (!currentIncidentId) {
       setMessage('AI intelligence activates when an incident is open.', 'warn');
       buttons.forEach(button => { button.disabled = true; });
@@ -103,7 +104,7 @@
 
   document.addEventListener('railwatch:incident', event => {
     currentIncidentId = String(event.detail?.event_id || '');
-    buttons.forEach(button => { button.disabled = !currentIncidentId; });
+    buttons.forEach(button => { button.disabled = window.RailWatchMode.local || !currentIncidentId; });
     if (currentIncidentId) {
       result.className = 'ai-result empty';
       result.textContent = 'Incident loaded. Choose an AI function above.';
