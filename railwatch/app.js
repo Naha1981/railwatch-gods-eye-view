@@ -3,6 +3,7 @@ const apiBase = (params.get('api') || 'https://naha-railwatch-api.onrender.com')
 const wsUrl = apiBase.replace(/^http/, 'ws') + '/ws/v1/c2-stream';
 
 const viewer = new Cesium.Viewer('map', {
+  requestRenderMode: true, maximumRenderTimeChange: Infinity,
   animation: false, timeline: false, baseLayerPicker: false, geocoder: false,
   homeButton: false, navigationHelpButton: false, sceneModePicker: false,
   fullscreenButton: false, infoBox: false, selectionIndicator: false, terrain: undefined, baseLayer: false,
