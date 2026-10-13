@@ -100,7 +100,7 @@ jobs:
         run: npx puppeteer browsers install chrome
 
       - name: Run RailWatch end-to-end smoke
-        run: npm run railwatch:smoke
+        run: node scripts/railwatch-public-demo-regression.mjs && npm run railwatch:smoke
 
       - name: Upload RailWatch smoke evidence
         if: always()
@@ -136,7 +136,7 @@ jobs:
         run: npx puppeteer browsers install chrome
 
       - name: Run WhatsApp workspace QA
-        run: npm run railwatch:whatsapp-qa
+        run: npm run railwatch:whatsapp-qa && node scripts/railwatch-workspace-qa.mjs
 
   windows-onboarding:
     name: Windows onboarding
