@@ -4,6 +4,7 @@ import puppeteer from 'puppeteer';
 
 const port = 4176;
 const vite = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(port)], {
+  detached: process.platform !== 'win32',
   stdio: ['ignore', 'pipe', 'pipe'],
   env: { ...process.env, BROWSER: 'none' },
 });
@@ -101,5 +102,6 @@ try {
   console.error(`RAILWATCH WHATSAPP QA FAIL: ${error?.message || error}`);
   process.exitCode = 1;
 } finally {
-  vite.kill('SIGTERM');
+  if (process.platform === 'win32') vite.kill('SIGTERM');
+  else { try { process.kill(-vite.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; } }
 }
