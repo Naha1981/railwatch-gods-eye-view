@@ -93,6 +93,7 @@ try {
     const consoleErrors = [];
     page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
     page.on('pageerror', error => consoleErrors.push(error.message));
+    page.on('dialog', dialog => dialog.dismiss());
     const url = `http://127.0.0.1:4173/railwatch/?mode=operations&api=http://127.0.0.1:${backendPort}`;
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -139,12 +140,12 @@ try {
       await page.waitForSelector('.dispatch-intelligence.visible #dispatch-confirm', { timeout: 5_000 });
       await page.click('#dispatch-confirm');
       assert.equal(await page.$eval('#dispatch-confirm', el => el.textContent.trim()), '✓ RESPONSE DISPATCH QUEUED');
-      assert(await page.$eval('.crs-stage[data-stage="RESOLVE"]', el => el.classList.contains('active')));
+      await page.waitForFunction(() => document.querySelector('.crs-stage[data-stage="RESOLVE"]')?.classList.contains('active'), { timeout: 5000 });
       await page.click('#dispatch-complete');
       await page.waitForSelector('.resolution-intelligence.visible #close-incident', { timeout: 5_000 });
       await page.click('#close-incident');
       await page.waitForSelector('.resolution-proof-ready', { timeout: 5_000 });
-      assert.equal(await page.$eval('#crs-status', el => el.textContent.trim()), 'CLOSED · EVIDENCE PRESERVED');
+      await page.waitForFunction(() => document.querySelector('#crs-status')?.textContent.trim() === 'CLOSED · EVIDENCE PRESERVED', { timeout: 5000 });
       assert(await page.$eval('.crs-stage[data-stage="PROVE"]', el => el.classList.contains('active')));
 
       await page.evaluate(() => {
