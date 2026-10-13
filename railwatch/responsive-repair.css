@@ -20,3 +20,6 @@
   .asset-operator { max-width: calc(100vw - 24px); box-sizing: border-box; }
   #incident-popover .rw-workspace-toolbar { flex-wrap: wrap; }
 }
+@media (min-width: 701px) and (max-width: 900px) {
+  .feed { top: var(--rw-topbar-bottom, 200px); }
+}
