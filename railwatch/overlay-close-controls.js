@@ -202,7 +202,8 @@
     framePending = true;
     requestAnimationFrame(() => {
       framePending = false;
-      wire();
+      observer.disconnect();
+      try { wire(); } finally { observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }); }
     });
   });
   observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
