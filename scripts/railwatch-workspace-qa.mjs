@@ -67,6 +67,7 @@ await once(backend, 'listening');
 const backendPort = backend.address().port;
 
 const vite = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4175'], {
+  detached: process.platform !== 'win32',
   stdio: ['ignore', 'pipe', 'pipe'],
   env: { ...process.env, BROWSER: 'none' },
 });
@@ -223,7 +224,9 @@ try {
   console.error(`RAILWATCH WORKSPACE UX QA FAIL: ${error?.message || error}`);
   process.exitCode = 1;
 } finally {
-  vite.kill('SIGTERM');
+  if (process.platform === 'win32') vite.kill('SIGTERM');
+  else { try { process.kill(-vite.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; } }
+  backend.closeAllConnections();
   backend.close();
   wss.close();
 }
