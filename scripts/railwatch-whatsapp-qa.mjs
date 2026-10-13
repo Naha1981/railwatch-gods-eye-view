@@ -36,6 +36,7 @@ try {
     const errors = [];
     page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
     page.on('pageerror', error => errors.push(`page: ${error.message}`));
+    await page.goto(`http://127.0.0.1:${port}/railwatch/`, { waitUntil: 'domcontentloaded' });
 
     for (const viewport of [
       { width: 1600, height: 1000 },
