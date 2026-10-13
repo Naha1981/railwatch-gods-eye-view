@@ -31,7 +31,13 @@
     return b;
   }
 
+  let lastState = '';
   function update() {
+    const currentPanel = document.querySelector(selector);
+    if (!currentPanel) return;
+    const state = [currentPanel.querySelector('#wa-account-status')?.textContent, currentPanel.querySelector('#wa-code')?.hidden, currentPanel.querySelector('#wa-notify')?.disabled].join('|');
+    if (state === lastState && currentPanel.querySelector('.rw-wa-journey')) return;
+    lastState = state;
     observer.disconnect();
     try {
     const panel = document.querySelector(selector);
