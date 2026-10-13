@@ -17,6 +17,7 @@
   const fmt = seconds => seconds <= 0 ? 'DUE' : `${Math.floor(seconds / 60).toString().padStart(2,'0')}:${Math.floor(seconds % 60).toString().padStart(2,'0')}`;
 
   async function refreshHealth(){
+    if(window.RailWatchMode.local) { $('ops-health').textContent='LOCAL DEMO'; $('ops-store').textContent='Browser-only synthetic workflow; no server writes'; return; }
     try{
       const response = await fetch(`${apiBase}/api/v1/operations/health`, {cache:'no-store'});
       const data = await response.json();
@@ -27,6 +28,7 @@
   }
 
   async function refreshIncident(){
+    if(window.RailWatchMode.local) return;
     if(!current) return;
     try{
       const token = await getOperatorToken();
@@ -47,6 +49,7 @@
   }
 
   async function getOperatorToken(){
+    if(window.RailWatchMode.local) return '';
     if(operatorToken) return operatorToken;
     try{
       let response;
@@ -71,6 +74,7 @@
   };
 
   async function performAction(action){
+    if(window.RailWatchMode.local) { if(!current) return; const stage={ACKNOWLEDGE:'VERIFY',VERIFY:'VERIFY',DISPATCH:'RESPOND',RESOLVE:'RESOLVE',PROVE:'PROVE'}[action]; $('ops-stage').textContent=stage; $('ops-timeline').insertAdjacentHTML('beforeend',`<div class="ops-event">${esc(action)} - LOCAL DEMO</div>`); document.dispatchEvent(new CustomEvent('railwatch:stage',{detail:{stage}})); return; }
     if(!current) return;
     const token = await getOperatorToken();
     if(!token){ $('ops-health').textContent='DEMO AUTH UNAVAILABLE'; return; }
@@ -83,8 +87,8 @@
 
   panel.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => performAction(button.dataset.action)));
   $('ops-replay').addEventListener('click', async () => { if(current) { await refreshIncident(); $('ops-timeline').scrollTop = $('ops-timeline').scrollHeight; } });
-  document.addEventListener('railwatch:incident', event => { current = event.detail; clearInterval(timer); refreshIncident(); timer = setInterval(refreshIncident, 1000); });
+  document.addEventListener('railwatch:incident', event => { current = event.detail; clearInterval(timer); refreshIncident(); if(!window.RailWatchMode.local) timer = setInterval(refreshIncident, 60000); });
   document.addEventListener('railwatch:stage', refreshIncident);
   refreshHealth();
-  setInterval(refreshHealth, 15000);
+  if(!window.RailWatchMode.local) setInterval(refreshHealth, 60000);
 })();
