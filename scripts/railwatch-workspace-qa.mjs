@@ -100,9 +100,7 @@ async function visibleWorkspaceState(page) {
       const el = document.querySelector(selector);
       if (!el) return false;
       const style = getComputedStyle(el);
-      const classVisible = el.matches('.asset-operator')
-        ? !el.classList.contains('closed')
-        : el.classList.contains('visible');
+      const classVisible = el.classList.contains('rw-workspace-active');
       return classVisible && style.display !== 'none' && style.visibility !== 'hidden' && Number.parseFloat(style.opacity || '1') > 0;
     };
     return {
@@ -191,7 +189,7 @@ try {
     await assertSingleWorkspace(page, '.evidence-ledger');
     results.push({ agent: 'Workspace Exclusivity Agent', step: 'ledger-tab', status: 'PASS' });
 
-    await page.click('.rw-workspace-back');
+    await page.click('.rw-workspace-active .rw-workspace-back');
     await new Promise(resolve => setTimeout(resolve, 150));
     await assertSingleWorkspace(page, '#incident-popover');
     results.push({ agent: 'Workspace Navigation Agent', step: 'back-to-incident', status: 'PASS' });
@@ -201,7 +199,7 @@ try {
     await assertSingleWorkspace(page, '.audit-feed-panel');
     results.push({ agent: 'Workspace Exclusivity Agent', step: 'activity-tab', status: 'PASS' });
 
-    await page.click('.rw-workspace-back');
+    await page.click('.rw-workspace-active .rw-workspace-back');
     await new Promise(resolve => setTimeout(resolve, 100));
     await page.keyboard.press('Escape');
     await new Promise(resolve => setTimeout(resolve, 100));
