@@ -3,9 +3,10 @@ const apiBase = (params.get('api') || 'https://naha-railwatch-api.onrender.com')
 const wsUrl = apiBase.replace(/^http/, 'ws') + '/ws/v1/c2-stream';
 
 const viewer = new Cesium.Viewer('map', {
+  requestRenderMode: true, maximumRenderTimeChange: Infinity,
   animation: false, timeline: false, baseLayerPicker: false, geocoder: false,
   homeButton: false, navigationHelpButton: false, sceneModePicker: false,
-  fullscreenButton: false, infoBox: false, selectionIndicator: false, terrain: undefined,
+  fullscreenButton: false, infoBox: false, selectionIndicator: false, terrain: undefined, baseLayer: false,
 });
 viewer.imageryLayers.removeAll();
 viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/' }));
@@ -214,6 +215,7 @@ hoverHandler.setInputAction((movement)=>{
 },Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
 function connect(){
+  if (window.RailWatchMode.local) return;
   const ws=new WebSocket(wsUrl);
   ws.onopen=()=>{wsDot.classList.add('online');wsLabel.textContent='CONNECTED';ws.send('hello');};
   ws.onclose=()=>{wsDot.classList.remove('online');wsLabel.textContent='RECONNECTING';setTimeout(connect,1500);};
@@ -222,15 +224,18 @@ function connect(){
 }
 
 async function refreshHealth(){
+  if (window.RailWatchMode.local) return;
   try{const res=await fetch(`${apiBase}/healthz`);const data=await res.json();clientCount.textContent=String(data.connections);}catch{clientCount.textContent='—';}
 }
 
 document.getElementById('demo-alert').addEventListener('click',async()=>{
-  const button=document.getElementById('demo-alert');button.disabled=true;
+  const button=document.getElementById('demo-alert');
+  if (window.RailWatchMode.local) { const event = window.RailWatchDemo.simulate(); addAlert(event); showIncident(event); return; }
+  button.disabled=true;
   try{const res=await fetch(`${apiBase}/api/v1/demo/line-breach`,{method:'POST'});if(!res.ok)throw new Error(`Demo request failed: ${res.status}`);}catch(error){console.error(error);wsLabel.textContent='DEMO ERROR';}
   finally{setTimeout(()=>{button.disabled=false;},1000);}
 });
 
 incidentPopover.addEventListener('mouseenter',()=>{viewer.scene.canvas.style.cursor='default';});
 incidentPopover.addEventListener('mouseleave',()=>{if(currentIncident) viewer.scene.canvas.style.cursor='default';});
-connect();refreshHealth();setInterval(refreshHealth,3000);
+if (window.RailWatchMode.local) { wsLabel.textContent='LOCAL DEMO'; clientCount.textContent='N/A'; document.querySelector('.topbar p').textContent='Browser-only synthetic demo - no live railway data or messages'; } else { connect(); refreshHealth(); setInterval(refreshHealth,60000); }

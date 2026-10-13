@@ -43,15 +43,15 @@ const corridorEl = document.getElementById('asset-corridor');
 const eventEl = document.getElementById('asset-event');
 const listEl = document.getElementById('asset-list');
 
-const toast = document.createElement('div');
-toast.className = 'asset-action-toast';
-document.body.appendChild(toast);
+const assetToast = document.createElement('div');
+assetToast.className = 'asset-action-toast';
+document.body.appendChild(assetToast);
 let toastTimer;
 function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add('visible');
+  assetToast.textContent = message;
+  assetToast.classList.add('visible');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('visible'), 1800);
+  toastTimer = setTimeout(() => assetToast.classList.remove('visible'), 1800);
 }
 
 function priorityScore(asset) {
@@ -201,5 +201,4 @@ function connectAssetStream() {
 }
 
 render();
-hydrateRecentEvent();
-connectAssetStream();
+if (!window.RailWatchMode.local) { hydrateRecentEvent(); connectAssetStream(); }

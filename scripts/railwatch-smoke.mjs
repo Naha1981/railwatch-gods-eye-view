@@ -39,6 +39,10 @@ const backend = createServer((req, res) => {
   res.setHeader('access-control-allow-origin', '*');
   res.setHeader('access-control-allow-methods', 'GET,POST,OPTIONS');
   res.setHeader('access-control-allow-headers', 'content-type');
+  if (req.url === '/api/v1/operations/health' || req.url === '/api/v1/whatsapp/session' || req.url === '/api/v1/whatsapp/status') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'qa-fixture', capabilities: {}, configured: false, paired: false, tenant: 'qa-fixture' })); return;
+  }
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
   if (req.url === '/healthz') { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify({ status: 'ok', connections: wss.clients.size, events: 1, demo_mode: true })); return; }
   if (req.url?.startsWith('/api/v1/events')) { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify([{ action: 'TRIGGER_ALARM', data: demoEvent }])); return; }
@@ -56,6 +60,7 @@ await backendReady;
 const backendPort = backend.address().port;
 
 const vite = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4173'], {
+  detached: process.platform !== 'win32',
   stdio: ['ignore', 'pipe', 'pipe'],
   env: { ...process.env, BROWSER: 'none' },
 });
@@ -93,7 +98,8 @@ try {
     const consoleErrors = [];
     page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
     page.on('pageerror', error => consoleErrors.push(error.message));
-    const url = `http://127.0.0.1:4173/railwatch/?api=http://127.0.0.1:${backendPort}`;
+    page.on('dialog', dialog => dialog.dismiss());
+    const url = `http://127.0.0.1:4173/railwatch/?mode=operations&api=http://127.0.0.1:${backendPort}`;
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
       await page.waitForSelector('#demo-alert', { timeout: 15_000 });
@@ -139,12 +145,12 @@ try {
       await page.waitForSelector('.dispatch-intelligence.visible #dispatch-confirm', { timeout: 5_000 });
       await page.click('#dispatch-confirm');
       assert.equal(await page.$eval('#dispatch-confirm', el => el.textContent.trim()), '✓ RESPONSE DISPATCH QUEUED');
-      assert(await page.$eval('.crs-stage[data-stage="RESOLVE"]', el => el.classList.contains('active')));
+      await page.waitForFunction(() => document.querySelector('.crs-stage[data-stage="RESOLVE"]')?.classList.contains('active'), { timeout: 5000 });
       await page.click('#dispatch-complete');
       await page.waitForSelector('.resolution-intelligence.visible #close-incident', { timeout: 5_000 });
       await page.click('#close-incident');
       await page.waitForSelector('.resolution-proof-ready', { timeout: 5_000 });
-      assert.equal(await page.$eval('#crs-status', el => el.textContent.trim()), 'CLOSED · EVIDENCE PRESERVED');
+      await page.waitForFunction(() => document.querySelector('#crs-status')?.textContent.trim() === 'CLOSED · EVIDENCE PRESERVED', { timeout: 5000 });
       assert(await page.$eval('.crs-stage[data-stage="PROVE"]', el => el.classList.contains('active')));
 
       await page.evaluate(() => {
@@ -198,7 +204,9 @@ try {
     }
   } finally { await browser.close(); }
 } finally {
-  vite.kill('SIGTERM');
+  if (process.platform === 'win32') vite.kill('SIGTERM');
+  else { try { process.kill(-vite.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; } }
+  backend.closeAllConnections();
   backend.close();
   wss.close();
-}
+    }

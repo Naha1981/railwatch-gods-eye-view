@@ -261,7 +261,7 @@
   document.addEventListener('click', event => {
     const el = event.target.closest('button,[role="button"]');
     if (!el) return;
-    if (el.id === 'demo-alert') setTimeout(() => advance('LOCATE'), 250);
+    if (el.id === 'demo-alert' && currentIncidentReady()) setTimeout(() => advance('LOCATE'), 250);
     if (el.matches('.asset-select')) setTimeout(() => advance('VERIFY'), 120);
     if (el.matches('[data-action="cctv"],[data-action="verify"],[data-action="cctv"]')) setTimeout(() => advance('VERIFY'), 120);
     if (el.id === 'cctv-verified' || el.matches('.dispatch-access-btn')) setTimeout(() => advance('RESPOND'), 160);

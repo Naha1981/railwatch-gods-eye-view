@@ -1,4 +1,5 @@
 (() => {
+  if (window.RailWatchMode.local) return;
   const selector = '.whatsapp-panel';
   let root = null;
 
@@ -30,7 +31,15 @@
     return b;
   }
 
+  let lastState = '';
   function update() {
+    const currentPanel = document.querySelector(selector);
+    if (!currentPanel) return;
+    const state = [currentPanel.querySelector('#wa-account-status')?.textContent, currentPanel.querySelector('#wa-code')?.hidden, currentPanel.querySelector('#wa-notify')?.disabled].join('|');
+    if (state === lastState && currentPanel.querySelector('.rw-wa-journey')) return;
+    lastState = state;
+    observer.disconnect();
+    try {
     const panel = document.querySelector(selector);
     const guide = ensure();
     if (!panel || !guide) return;
@@ -64,6 +73,7 @@
     guide.querySelector('#rw-wa-copy').textContent = copy;
     guide.querySelectorAll('.rw-wa-journey-steps span').forEach((el,i) => { el.classList.toggle('active', i === step-1); el.classList.toggle('done', i < step-1); });
     const actions = guide.querySelector('#rw-wa-actions'); actions.innerHTML = ''; buttons.forEach(b => actions.appendChild(b));
+    } finally { observer.observe(document.querySelector(selector), { childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['hidden','class'] }); }
   }
 
   document.addEventListener('railwatch:workspace-opened', event => {
@@ -75,6 +85,6 @@
     if (event.target.closest('.whatsapp-panel button,input')) setTimeout(update, 180);
   });
   const observer = new MutationObserver(update);
-  observer.observe(document.body, { childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['hidden','class'] });
+  observer.observe(document.querySelector(selector), { childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['hidden','class'] });
   setTimeout(update, 500);
 })();

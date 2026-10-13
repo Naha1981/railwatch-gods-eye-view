@@ -10,6 +10,7 @@
     button.textContent = 'CALCULATING RESPONSE…';
     button.disabled = true;
     try {
+      if (window.RailWatchMode.local) { const asset = window.RailWatchDemo.current?.incident.assets.find(item => item.name === heading.textContent.trim()); if (asset) window.RailWatchDispatch?.openForAsset(asset.asset_id); return; }
       const token = window.RailWatchAuth?.getOperatorToken ? await window.RailWatchAuth.getOperatorToken() : '';
       if (!token) throw new Error('Operator authentication required');
       const response = await fetch(`${apiBase}/api/v1/events?limit=1`, {headers:{authorization:`Bearer ${token}`}});

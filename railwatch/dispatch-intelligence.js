@@ -47,6 +47,7 @@
   }
 
   async function latestEvent() {
+    if (window.RailWatchMode.local) return window.RailWatchDemo.current;
     const response = await fetch(`${apiBase}/api/v1/events?limit=1`);
     if (!response.ok) throw new Error(`Event lookup failed: ${response.status}`);
     const events = await response.json();

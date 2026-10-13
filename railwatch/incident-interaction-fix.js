@@ -11,6 +11,7 @@
       if (row.dataset.interactionWired) return;
       row.dataset.interactionWired = 'true';
       row.addEventListener('click', async () => {
+        if (window.RailWatchMode.local) { if (window.RailWatchDemo.current) showIncident(window.RailWatchDemo.current); return; }
         const strong = row.querySelector('strong')?.textContent || '';
         const span = row.querySelector('span')?.textContent || '';
         const kmMatch = strong.match(/KM\s+([0-9.]+)/i);
@@ -53,6 +54,5 @@
   const observer = new MutationObserver(() => wireAlertCards());
   observer.observe(feed, { childList: true, subtree: true });
   wireAlertCards();
-  hydrateHistory();
-  setInterval(hydrateHistory, 1500);
+  if (!window.RailWatchMode.local) { hydrateHistory(); setInterval(hydrateHistory, 60000); }
 })();

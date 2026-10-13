@@ -38,6 +38,10 @@ const backend = createServer((req, res) => {
   res.setHeader('access-control-allow-origin', '*');
   res.setHeader('access-control-allow-methods', 'GET,POST,OPTIONS');
   res.setHeader('access-control-allow-headers', 'content-type');
+  if (req.url === '/api/v1/operations/health' || req.url === '/api/v1/whatsapp/session' || req.url === '/api/v1/whatsapp/status') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'qa-fixture', capabilities: {}, configured: false, paired: false, tenant: 'qa-fixture' })); return;
+  }
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
   if (req.url === '/healthz') {
     res.writeHead(200, { 'content-type': 'application/json' });
@@ -63,6 +67,7 @@ await once(backend, 'listening');
 const backendPort = backend.address().port;
 
 const vite = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4175'], {
+  detached: process.platform !== 'win32',
   stdio: ['ignore', 'pipe', 'pipe'],
   env: { ...process.env, BROWSER: 'none' },
 });
@@ -96,9 +101,7 @@ async function visibleWorkspaceState(page) {
       const el = document.querySelector(selector);
       if (!el) return false;
       const style = getComputedStyle(el);
-      const classVisible = el.matches('.asset-operator')
-        ? !el.classList.contains('closed')
-        : el.classList.contains('visible');
+      const classVisible = el.classList.contains('rw-workspace-active');
       return classVisible && style.display !== 'none' && style.visibility !== 'hidden' && Number.parseFloat(style.opacity || '1') > 0;
     };
     return {
@@ -127,6 +130,8 @@ try {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
     page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
     page.on('pageerror', error => errors.push(`page: ${error.message}`));
+    await page.goto(`http://127.0.0.1:4175/railwatch/?mode=operations&api=http://127.0.0.1:${backendPort}`, { waitUntil: 'domcontentloaded' });
+    page.on('dialog', dialog => dialog.dismiss());
 
     const geometry = async viewport => {
       await page.setViewport(viewport);
@@ -185,7 +190,7 @@ try {
     await assertSingleWorkspace(page, '.evidence-ledger');
     results.push({ agent: 'Workspace Exclusivity Agent', step: 'ledger-tab', status: 'PASS' });
 
-    await page.click('.rw-workspace-back');
+    await page.click('.rw-workspace-active .rw-workspace-back');
     await new Promise(resolve => setTimeout(resolve, 150));
     await assertSingleWorkspace(page, '#incident-popover');
     results.push({ agent: 'Workspace Navigation Agent', step: 'back-to-incident', status: 'PASS' });
@@ -195,7 +200,7 @@ try {
     await assertSingleWorkspace(page, '.audit-feed-panel');
     results.push({ agent: 'Workspace Exclusivity Agent', step: 'activity-tab', status: 'PASS' });
 
-    await page.click('.rw-workspace-back');
+    await page.click('.rw-workspace-active .rw-workspace-back');
     await new Promise(resolve => setTimeout(resolve, 100));
     await page.keyboard.press('Escape');
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -219,7 +224,9 @@ try {
   console.error(`RAILWATCH WORKSPACE UX QA FAIL: ${error?.message || error}`);
   process.exitCode = 1;
 } finally {
-  vite.kill('SIGTERM');
+  if (process.platform === 'win32') vite.kill('SIGTERM');
+  else { try { process.kill(-vite.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; } }
+  backend.closeAllConnections();
   backend.close();
   wss.close();
 }

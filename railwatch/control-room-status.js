@@ -89,7 +89,7 @@
   }
 
   async function hydrateRecentIncident() {
-    if (hasActiveIncident) return;
+    if (hasActiveIncident || window.RailWatchMode.local) return;
     try {
       if (!params.get('ingest') && !sessionStorage.getItem('railwatch.operatorToken')) return;
       const token = window.RailWatchAuth?.getOperatorToken ? await window.RailWatchAuth.getOperatorToken() : '';
