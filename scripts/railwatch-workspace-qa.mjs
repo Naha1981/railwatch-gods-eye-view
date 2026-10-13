@@ -38,6 +38,10 @@ const backend = createServer((req, res) => {
   res.setHeader('access-control-allow-origin', '*');
   res.setHeader('access-control-allow-methods', 'GET,POST,OPTIONS');
   res.setHeader('access-control-allow-headers', 'content-type');
+  if (req.url === '/api/v1/operations/health' || req.url === '/api/v1/whatsapp/session' || req.url === '/api/v1/whatsapp/status') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', service: 'qa-fixture', capabilities: {}, configured: false, paired: false, tenant: 'qa-fixture' })); return;
+  }
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
   if (req.url === '/healthz') {
     res.writeHead(200, { 'content-type': 'application/json' });
