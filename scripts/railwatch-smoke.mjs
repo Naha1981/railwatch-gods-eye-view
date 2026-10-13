@@ -93,7 +93,7 @@ try {
     const consoleErrors = [];
     page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
     page.on('pageerror', error => consoleErrors.push(error.message));
-    const url = `http://127.0.0.1:4173/railwatch/?api=http://127.0.0.1:${backendPort}`;
+    const url = `http://127.0.0.1:4173/railwatch/?mode=operations&api=http://127.0.0.1:${backendPort}`;
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
       await page.waitForSelector('#demo-alert', { timeout: 15_000 });
