@@ -127,6 +127,8 @@ try {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
     page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
     page.on('pageerror', error => errors.push(`page: ${error.message}`));
+    await page.goto(`http://127.0.0.1:4175/railwatch/?mode=operations&api=http://127.0.0.1:${backendPort}`, { waitUntil: 'domcontentloaded' });
+    page.on('dialog', dialog => dialog.dismiss());
 
     const geometry = async viewport => {
       await page.setViewport(viewport);
