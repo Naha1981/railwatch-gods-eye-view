@@ -89,7 +89,7 @@
         </section>
         <button class="dispatch-primary" id="dispatch-confirm" type="button">DISPATCH RESPONSE · SAMPLE</button>
         <button class="dispatch-secondary" id="dispatch-reassign" type="button">VIEW OTHER RESPONSE UNITS</button>
-        <div class="dispatch-footnote">Prototype recommendation only. No real field team or Transnet control system is contacted.</div>
+        <div class="dispatch-footnote">Simulated recommendation only. No real field team or Transnet control system is contacted.</div>
       `;
 
       body.querySelector('#dispatch-confirm').addEventListener('click', () => {

@@ -77,7 +77,7 @@
           <div><span>Freight corridor sensitivity</span><b>+10</b></div>
           <div><span>Potential operational interruption</span><b>+10</b></div>
         </div>
-        <div class="rw-intel-footnote">DEMO RULE ENGINE · NOT A PREDICTIVE ML MODEL · WEIGHTS ARE EXPLAINABLE PROTOTYPE VALUES</div>
+        <div class="rw-intel-footnote">DEMO RULE ENGINE · NOT A PREDICTIVE ML MODEL · WEIGHTS ARE EXPLAINABLE SAMPLE VALUES</div>
       </div>
 
       <div class="rw-intel-context">
@@ -99,7 +99,7 @@
           <div><b>3</b><span>Verify train movement / operating impact</span><em>OPERATOR</em></div>
           <div><b>4</b><span>Dispatch field response if verified</span><em>OPERATOR</em></div>
         </div>
-        <div class="rw-intel-footnote">No autonomous signalling, train movement, or field dispatch is performed by this prototype.</div>
+        <div class="rw-intel-footnote">No autonomous signalling, train movement, or field dispatch is performed by this system.</div>
       </div>
 
       <div class="rw-intel-history">

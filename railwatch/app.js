@@ -173,7 +173,7 @@ function showAssetDetail(data, asset) {
 }
 
 function showCctvEvidence(data, asset, p) {
-  incidentPopover.innerHTML = `<button class="back-to-incident" type="button" id="back-to-asset">← BACK TO ASSET</button><div class="popover-critical">● CCTV VERIFICATION · SAMPLE</div><h2>${escapeHtml(p.camera)} · ${escapeHtml(asset.asset_type)}</h2><div class="cctv-frame"><div class="cctv-scan">SIMULATED LIVE FRAME</div><div class="cctv-crosshair">+</div><div class="cctv-caption">${escapeHtml(asset.name)} · ${escapeHtml(p.freshness)}</div></div><p><b>Operator note</b><br>CCTV evidence is represented as a prototype verification surface. A production adapter can supply HLS/WebRTC camera feeds and recorded clips.</p><button type="button" class="operator-btn" id="cctv-verified">CONFIRM VISUAL CHECK</button>`;
+  incidentPopover.innerHTML = `<button class="back-to-incident" type="button" id="back-to-asset">← BACK TO ASSET</button><div class="popover-critical">● CCTV VERIFICATION · SAMPLE</div><h2>${escapeHtml(p.camera)} · ${escapeHtml(asset.asset_type)}</h2><div class="cctv-frame"><div class="cctv-scan">SIMULATED LIVE FRAME</div><div class="cctv-crosshair">+</div><div class="cctv-caption">${escapeHtml(asset.name)} · ${escapeHtml(p.freshness)}</div></div><p><b>Operator note</b><br>CCTV evidence is represented as a simulated verification surface. A production adapter can supply HLS/WebRTC camera feeds and recorded clips.</p><button type="button" class="operator-btn" id="cctv-verified">CONFIRM VISUAL CHECK</button>`;
   incidentPopover.classList.add('visible');
   document.getElementById('back-to-asset').addEventListener('click',()=>showAssetDetail(data,asset));
   document.getElementById('cctv-verified').addEventListener('click',()=>{
