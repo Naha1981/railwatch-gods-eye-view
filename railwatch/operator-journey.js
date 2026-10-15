@@ -62,7 +62,7 @@
       title: 'Review the recommended response',
       copy: 'RailWatch turns the verified incident into a response recommendation: suitable response unit, distance, ETA and recommended action.',
       next: '4. REVIEW → DISPATCH RESPONSE', detail: 'The recommendation window opens and requires operator approval.',
-      note: 'The prototype does not contact a real field team.'
+      note: 'The walkthrough does not contact a real field team.'
     },
     RESOLVE: {
       title: 'Complete and close the incident',
