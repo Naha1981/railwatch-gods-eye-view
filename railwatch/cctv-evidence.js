@@ -14,7 +14,7 @@
           <div>
             <div class="rw-cctv-eyebrow">EVIDENCE VIEWER · RAILWATCH</div>
             <div class="rw-cctv-title" id="rw-cctv-title">Camera evidence</div>
-            <div class="rw-cctv-sub" id="rw-cctv-sub">DEMO REFERENCE FOOTAGE · NOT A LIVE TRANSNET CAMERA</div>
+            <div class="rw-cctv-sub" id="rw-cctv-sub">REFERENCE FOOTAGE · NOT A LIVE TRANSNET CAMERA</div>
           </div>
           <button class="rw-cctv-close" id="rw-cctv-close" type="button">CLOSE</button>
         </div>
@@ -24,7 +24,7 @@
             <source src="${VIDEO_WEBM_URL}" type="video/webm" />
             Your browser could not load the CCTV reference video.
           </video>
-          <div class="rw-cctv-badge">DEMO EVIDENCE</div>
+          <div class="rw-cctv-badge">SAMPLE EVIDENCE</div>
           <div class="rw-cctv-rec">● RECORDING REFERENCE</div>
           <div class="rw-cctv-overlayline"><span id="rw-cctv-location">RAIL CORRIDOR</span><span id="rw-cctv-time">--:--:-- SAST</span></div>
           <div class="rw-cctv-feed-status" id="rw-cctv-feed-status">LOADING VIDEO…</div>
@@ -32,11 +32,11 @@
         <div class="rw-cctv-caption"><span class="positive" id="rw-cctv-availability">VIDEO LOADING</span><span>OPERATOR VIEW · VISUAL VERIFICATION</span></div>
         <div class="rw-cctv-grid">
           <div class="rw-cctv-kpi high"><span>INCIDENT</span><strong id="rw-cctv-incident">CRITICAL</strong></div>
-          <div class="rw-cctv-kpi high"><span>CAMERA</span><strong id="rw-cctv-camera">DEMO-CAM-0142</strong></div>
+          <div class="rw-cctv-kpi high"><span>CAMERA</span><strong id="rw-cctv-camera">SAMPLE-CAM-0142</strong></div>
           <div class="rw-cctv-kpi medium"><span>ASSET</span><strong id="rw-cctv-asset">TRACK</strong></div>
           <div class="rw-cctv-kpi good"><span>FEED STATE</span><strong id="rw-cctv-feed-state">LOADING</strong></div>
         </div>
-        <div class="rw-cctv-note"><b>Demo note:</b> this is recorded railway reference footage for the prototype, not a live Transnet security camera. Production would replace it with an authorised HLS/WebRTC CCTV feed or recorded clip.</div>
+        <div class="rw-cctv-note"><b>Note:</b> this is recorded railway reference footage, not a live Transnet security camera. Production would replace it with an authorised HLS/WebRTC CCTV feed or recorded clip.</div>
         <div class="rw-cctv-source">Source: Open Beelden · Public Domain Mark · <a href="${SOURCE_URL}" target="_blank" rel="noreferrer">view source and licence</a></div>
       </div>`;
     document.body.appendChild(overlay);
@@ -71,9 +71,9 @@
     const root = ensureOverlay();
     const video = root.querySelector('#rw-cctv-video');
     root.querySelector('#rw-cctv-title').textContent = 'CCTV evidence · visual verification';
-    root.querySelector('#rw-cctv-camera').textContent = 'DEMO-CAM-0142';
+    root.querySelector('#rw-cctv-camera').textContent = 'SAMPLE-CAM-0142';
     root.querySelector('#rw-cctv-asset').textContent = (document.querySelector('.incident-popover h2')?.textContent || 'RAIL ASSET').slice(0, 24).toUpperCase();
-    root.querySelector('#rw-cctv-location').textContent = 'RAIL CORRIDOR · DEMO SECTOR';
+    root.querySelector('#rw-cctv-location').textContent = 'RAIL CORRIDOR · SAMPLE SECTOR';
     root.querySelector('#rw-cctv-time').textContent = nowSast();
     root.classList.add('visible');
     video.load();

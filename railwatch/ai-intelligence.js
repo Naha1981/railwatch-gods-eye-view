@@ -21,7 +21,7 @@
     </div>
     <div id="ai-result" class="ai-result empty">Simulate an incident first. AI analysis will appear here after you select the active case.</div>
     <div id="ai-meta" class="ai-meta"></div>
-    <div class="ai-boundary">AI output is decision support, not a signalling instruction or autonomous dispatch decision. Demo GIS, CCTV and asset data remain synthetic unless a future authoritative adapter is connected.</div>
+    <div class="ai-boundary">AI output is decision support, not a signalling instruction or autonomous dispatch decision. Sample GIS, CCTV and asset data remain synthetic unless a future authoritative adapter is connected.</div>
   `;
   document.body.appendChild(root);
 
@@ -56,7 +56,7 @@
   }
 
   async function refreshStatus() {
-    if (window.RailWatchMode.local) { setMessage('LOCAL DEMO - AI calls disabled. Rule-based demonstration only.', 'warn'); buttons.forEach(button => { button.disabled = true; }); return; }
+    if (window.RailWatchMode.local) { setMessage('LOCAL MODE - AI calls disabled. Rule-based output only.', 'warn'); buttons.forEach(button => { button.disabled = true; }); return; }
     if (!currentIncidentId) {
       setMessage('AI intelligence activates when an incident is open.', 'warn');
       buttons.forEach(button => { button.disabled = true; });

@@ -64,17 +64,17 @@ function assetProfile(asset) {
   const type = String(asset.asset_type || '').toUpperCase();
   if (type.includes('SIGNALLING')) return {
     priority: 'HIGH', confidence: 'HIGH', verification: 'PENDING',
-    evidence: 'Sensor anomaly + mapped asset proximity', camera: 'CAM-DEMO-17',
+    evidence: 'Sensor anomaly + mapped asset proximity', camera: 'CAM-SAMPLE-17',
     freshness: '2 min ago', history: ['08:04 · Sensor anomaly detected', '08:05 · Asset linked to incident', '08:06 · Field verification pending']
   };
   if (type.includes('TELECOMMUNICATION')) return {
     priority: 'MEDIUM', confidence: 'MEDIUM', verification: 'UNVERIFIED',
-    evidence: 'Mapped asset inside incident radius', camera: 'CAM-DEMO-19',
+    evidence: 'Mapped asset inside incident radius', camera: 'CAM-SAMPLE-19',
     freshness: '4 min ago', history: ['07:58 · Last healthy heartbeat', '08:05 · Incident proximity raised', '08:06 · Verification not started']
   };
   return {
     priority: 'HIGH', confidence: 'MEDIUM', verification: 'PENDING',
-    evidence: 'Incident geometry overlaps track asset', camera: 'CAM-DEMO-18',
+    evidence: 'Incident geometry overlaps track asset', camera: 'CAM-SAMPLE-18',
     freshness: '1 min ago', history: ['08:03 · Track section normal', '08:05 · Breach raised nearby', '08:06 · Field inspection required']
   };
 }
@@ -162,10 +162,10 @@ function showAssetDetail(data, asset) {
       <div><span>VERIFICATION</span><strong>${escapeHtml(p.verification)}</strong></div>
       <div><span>CONFIDENCE</span><strong>${escapeHtml(p.confidence)}</strong></div>
     </div>
-    <div class="evidence-card"><div class="asset-list-title">EVIDENCE</div><strong>${escapeHtml(p.evidence)}</strong><span>Source freshness: ${escapeHtml(p.freshness)} · Demo evidence record</span><button type="button" class="operator-btn" data-action="cctv">VIEW CCTV EVIDENCE</button></div>
+    <div class="evidence-card"><div class="asset-list-title">EVIDENCE</div><strong>${escapeHtml(p.evidence)}</strong><span>Source freshness: ${escapeHtml(p.freshness)} · Sample evidence record</span><button type="button" class="operator-btn" data-action="cctv">VIEW CCTV EVIDENCE</button></div>
     <div class="evidence-card"><div class="asset-list-title">VERIFICATION</div><strong>${escapeHtml(asset.condition)}</strong><span>Current state: ${escapeHtml(p.verification)}</span><button type="button" class="operator-btn" data-action="verify">MARK FIELD VERIFIED</button></div>
     <div class="history-card"><div class="asset-list-title">RESPONSE HISTORY</div>${p.history.map(item=>`<div class="history-row">${escapeHtml(item)}</div>`).join('')}</div>
-    <div class="popover-foot">DEMO WORKFLOW · NOT AUTHORITATIVE FIELD OR CCTV DATA</div>`;
+    <div class="popover-foot">SAMPLE WORKFLOW · NOT AUTHORITATIVE FIELD OR CCTV DATA</div>`;
   incidentPopover.classList.add('visible');
   document.getElementById('back-to-incident').addEventListener('click',()=>showIncident(data));
   incidentPopover.querySelector('[data-action="cctv"]').addEventListener('click',()=>showCctvEvidence(data,asset,p));
@@ -173,27 +173,27 @@ function showAssetDetail(data, asset) {
 }
 
 function showCctvEvidence(data, asset, p) {
-  incidentPopover.innerHTML = `<button class="back-to-incident" type="button" id="back-to-asset">← BACK TO ASSET</button><div class="popover-critical">● CCTV VERIFICATION · DEMO</div><h2>${escapeHtml(p.camera)} · ${escapeHtml(asset.asset_type)}</h2><div class="cctv-frame"><div class="cctv-scan">SIMULATED LIVE FRAME</div><div class="cctv-crosshair">+</div><div class="cctv-caption">${escapeHtml(asset.name)} · ${escapeHtml(p.freshness)}</div></div><p><b>Operator note</b><br>CCTV evidence is represented as a prototype verification surface. A production adapter can supply HLS/WebRTC camera feeds and recorded clips.</p><button type="button" class="operator-btn" id="cctv-verified">CONFIRM VISUAL CHECK</button>`;
+  incidentPopover.innerHTML = `<button class="back-to-incident" type="button" id="back-to-asset">← BACK TO ASSET</button><div class="popover-critical">● CCTV VERIFICATION · SAMPLE</div><h2>${escapeHtml(p.camera)} · ${escapeHtml(asset.asset_type)}</h2><div class="cctv-frame"><div class="cctv-scan">SIMULATED LIVE FRAME</div><div class="cctv-crosshair">+</div><div class="cctv-caption">${escapeHtml(asset.name)} · ${escapeHtml(p.freshness)}</div></div><p><b>Operator note</b><br>CCTV evidence is represented as a prototype verification surface. A production adapter can supply HLS/WebRTC camera feeds and recorded clips.</p><button type="button" class="operator-btn" id="cctv-verified">CONFIRM VISUAL CHECK</button>`;
   incidentPopover.classList.add('visible');
   document.getElementById('back-to-asset').addEventListener('click',()=>showAssetDetail(data,asset));
   document.getElementById('cctv-verified').addEventListener('click',()=>{
     asset.demoVerification='VERIFIED';
     showAssetDetail(data,asset);
-    toast('Visual check recorded in demo response history');
+    toast('Visual check recorded in sample response history');
   });
 }
 
 function markVerified(data, asset) {
   asset.demoVerification='VERIFIED';
   showAssetDetail(data,asset);
-  toast('Field verification recorded in demo workflow');
+  toast('Field verification recorded in sample workflow');
 }
 
 function showIncident(data) {
   currentIncident=data;
   const incident=data.incident||{};
   const assets=incident.assets||[];
-  incidentPopover.innerHTML=`<div class="popover-critical">● ${escapeHtml(data.severity)} INCIDENT</div><h2>${escapeHtml(incident.location_name||data.segment)}</h2><div class="popover-grid"><div><span>ALERT</span><strong>${escapeHtml(data.alert_type)}</strong></div><div><span>KM MARKER</span><strong>${Number(data.km_marker).toFixed(1)}</strong></div><div><span>SENSOR</span><strong>${escapeHtml(data.sensor_id)}</strong></div><div><span>ASSET</span><strong>${escapeHtml(incident.asset_type||'Unknown')}</strong></div></div>${renderAssetRows(data)}<p><b>Condition</b><br>${escapeHtml(incident.asset_condition||'Assessment pending')}</p><p><b>Operational impact</b><br>${escapeHtml(incident.operational_impact||'Impact assessment pending')}</p><p><b>Recommended action</b><br>${escapeHtml(incident.recommended_action||'Verify with field operations')}</p><div class="popover-foot">${escapeHtml(incident.data_classification||'DEMO · NOT AUTHORITATIVE GIS')}</div>`;
+  incidentPopover.innerHTML=`<div class="popover-critical">● ${escapeHtml(data.severity)} INCIDENT</div><h2>${escapeHtml(incident.location_name||data.segment)}</h2><div class="popover-grid"><div><span>ALERT</span><strong>${escapeHtml(data.alert_type)}</strong></div><div><span>KM MARKER</span><strong>${Number(data.km_marker).toFixed(1)}</strong></div><div><span>SENSOR</span><strong>${escapeHtml(data.sensor_id)}</strong></div><div><span>ASSET</span><strong>${escapeHtml(incident.asset_type||'Unknown')}</strong></div></div>${renderAssetRows(data)}<p><b>Condition</b><br>${escapeHtml(incident.asset_condition||'Assessment pending')}</p><p><b>Operational impact</b><br>${escapeHtml(incident.operational_impact||'Impact assessment pending')}</p><p><b>Recommended action</b><br>${escapeHtml(incident.recommended_action||'Verify with field operations')}</p><div class="popover-foot">${escapeHtml(incident.data_classification||'SAMPLE · NOT AUTHORITATIVE GIS')}</div>`;
   incidentPopover.classList.add('visible');
   incidentPopover.querySelectorAll('.asset-select').forEach(btn=>btn.addEventListener('click',()=>showAssetDetail(data,assets[Number(btn.dataset.assetIndex)])));
 }
@@ -238,4 +238,4 @@ document.getElementById('demo-alert').addEventListener('click',async()=>{
 
 incidentPopover.addEventListener('mouseenter',()=>{viewer.scene.canvas.style.cursor='default';});
 incidentPopover.addEventListener('mouseleave',()=>{if(currentIncident) viewer.scene.canvas.style.cursor='default';});
-if (window.RailWatchMode.local) { wsLabel.textContent='LOCAL DEMO'; clientCount.textContent='N/A'; document.querySelector('.topbar p').textContent='Browser-only synthetic demo - no live railway data or messages'; } else { connect(); refreshHealth(); setInterval(refreshHealth,60000); }
+if (window.RailWatchMode.local) { wsLabel.textContent='LOCAL MODE'; clientCount.textContent='N/A'; document.querySelector('.topbar p').textContent='Browser-only synthetic data - no live railway data or messages'; } else { connect(); refreshHealth(); setInterval(refreshHealth,60000); }

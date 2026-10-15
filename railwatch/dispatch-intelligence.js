@@ -8,7 +8,7 @@
   root.innerHTML = `
     <header class="dispatch-head">
       <div>
-        <span class="dispatch-kicker">RESPONSE DISPATCH · DEMO</span>
+        <span class="dispatch-kicker">RESPONSE DISPATCH · SAMPLE</span>
         <h2>Recommended response</h2>
       </div>
       <button id="dispatch-close" class="dispatch-close" type="button" aria-label="Close">×</button>
@@ -66,7 +66,7 @@
       const team = chooseTeam(asset);
       const priority = priorityFor(asset);
       body.innerHTML = `
-        <div class="dispatch-incident-strip"><span>INCIDENT</span><strong>${esc(data.alert_type || 'LINE BREACH')}</strong><em>${esc(data.segment || 'DEMO SECTOR')} · KM ${Number(data.km_marker || 0).toFixed(1)}</em></div>
+        <div class="dispatch-incident-strip"><span>INCIDENT</span><strong>${esc(data.alert_type || 'LINE BREACH')}</strong><em>${esc(data.segment || 'SAMPLE SECTOR')} · KM ${Number(data.km_marker || 0).toFixed(1)}</em></div>
         <section class="dispatch-asset">
           <div class="dispatch-status ${priority.className}">${priority.label} PRIORITY</div>
           <h3>${esc(asset.name)}</h3>
@@ -87,7 +87,7 @@
           <p>${esc(team.action)}</p>
           <div class="dispatch-sequence"><span>1</span> Secure <span>2</span> Verify <span>3</span> Report</div>
         </section>
-        <button class="dispatch-primary" id="dispatch-confirm" type="button">DISPATCH RESPONSE · DEMO</button>
+        <button class="dispatch-primary" id="dispatch-confirm" type="button">DISPATCH RESPONSE · SAMPLE</button>
         <button class="dispatch-secondary" id="dispatch-reassign" type="button">VIEW OTHER RESPONSE UNITS</button>
         <div class="dispatch-footnote">Prototype recommendation only. No real field team or Transnet control system is contacted.</div>
       `;
@@ -96,7 +96,7 @@
         const button = body.querySelector('#dispatch-confirm');
         button.textContent = '✓ RESPONSE DISPATCH QUEUED';
         button.classList.add('queued');
-        body.querySelector('.dispatch-footnote').textContent = 'Demo action recorded locally. Next step: complete the response and close the incident.';
+        body.querySelector('.dispatch-footnote').textContent = 'Action recorded locally. Next step: complete the response and close the incident.';
 
         if (!body.querySelector('#dispatch-complete')) {
           const complete = document.createElement('button');
@@ -119,7 +119,7 @@
         body.querySelector('.dispatch-team-type').textContent = next.type;
       });
     } catch (error) {
-      body.innerHTML = `<div class="dispatch-empty">Unable to calculate the demo response.<br/><small>${esc(error.message)}</small></div>`;
+      body.innerHTML = `<div class="dispatch-empty">Unable to calculate the sample response.<br/><small>${esc(error.message)}</small></div>`;
     }
   }
 

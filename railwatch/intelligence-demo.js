@@ -1,7 +1,7 @@
 (() => {
   const ROOT_ID = 'railwatch-intelligence-panel';
   const DEMO = {
-    camera: 'DEMO-CAM-0142',
+    camera: 'SAMPLE-CAM-0142',
     cameraStatus: 'ONLINE',
     detection: 'SUSPICIOUS ACTIVITY',
     evidence: '02:14:38 SAST',

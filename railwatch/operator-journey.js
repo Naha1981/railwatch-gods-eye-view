@@ -16,7 +16,7 @@
   root.setAttribute('aria-label', 'RailWatch guided operator journey');
   root.innerHTML = `
     <header class="rw-journey-head">
-      <div><div class="rw-journey-step" id="rwj-step">STEP 1 OF 6 · DETECT</div><div class="rw-journey-title" id="rwj-title">Start the demonstration</div></div>
+      <div><div class="rw-journey-step" id="rwj-step">STEP 1 OF 6 · DETECT</div><div class="rw-journey-title" id="rwj-title">Start the walkthrough</div></div>
       <div class="rw-journey-progress" id="rwj-progress"></div>
       <button class="rw-journey-dismiss" id="rwj-dismiss" type="button" aria-label="Hide guided journey">×</button>
     </header>
@@ -42,9 +42,9 @@
   const specs = {
     DETECT: {
       title: 'Start with a simulated line breach',
-      copy: 'This is the starting point. RailWatch creates a demo incident, places it on the map and opens the incident workspace.',
+      copy: 'This is the starting point. RailWatch creates a sample incident, places it on the map and opens the incident workspace.',
       next: '1. SIMULATE LINE BREACH', detail: 'Creates the incident and moves you to LOCATE.',
-      note: 'The demonstration is synthetic and not authoritative railway control data.'
+      note: 'The walkthrough is synthetic and not authoritative railway control data.'
     },
     LOCATE: {
       title: 'Locate the incident and choose the asset',
@@ -68,7 +68,7 @@
       title: 'Complete and close the incident',
       copy: 'After dispatch is queued, complete the response and move into incident resolution. This is the hand-off from action to proof.',
       next: '5. COMPLETE RESPONSE → CLOSE INCIDENT', detail: 'Opens the resolution window and prepares the case for proof.',
-      note: 'The response is recorded as a demo workflow action.'
+      note: 'The response is recorded as a sample workflow action.'
     },
     PROVE: {
       title: 'View the report and preserve proof',

@@ -5,7 +5,7 @@
   root.innerHTML = `
     <header class="incident-history-head">
       <div>
-        <span class="incident-history-kicker">OPERATIONS HISTORY · DEMO</span>
+        <span class="incident-history-kicker">OPERATIONS HISTORY · SAMPLE</span>
         <h2>Incident history</h2>
       </div>
       <button class="incident-history-close" type="button" aria-label="Close">×</button>
@@ -53,7 +53,7 @@
     const item = {
       eventId,
       alert: String(data?.alert_type || 'LINE BREACH').replace(/_/g, ' '),
-      segment: data?.segment || 'Demo sector',
+      segment: data?.segment || 'Sample sector',
       km: Number(data?.km_marker || 0).toFixed(1),
       assetCount: Array.isArray(data?.incident?.assets) ? data.incident.assets.length : 0,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

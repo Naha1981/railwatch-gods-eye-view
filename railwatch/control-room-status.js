@@ -7,7 +7,7 @@
   root.setAttribute('aria-label', 'Incident status overview');
   root.innerHTML = `
     <div class="crs-main">
-      <span class="crs-kicker">INCIDENT CONTROL · DEMO</span>
+      <span class="crs-kicker">INCIDENT CONTROL · SAMPLE</span>
       <strong id="crs-title">NO ACTIVE INCIDENT</strong>
       <span id="crs-location">Waiting for telemetry</span>
     </div>
@@ -70,7 +70,7 @@
       return value === 'ALERT' || value === 'UNKNOWN';
     }).length;
     title.textContent = String(data.alert_type || 'LINE BREACH').replace(/_/g, ' ');
-    locationEl.textContent = `${data.segment || 'Demo sector'} · KM ${Number(data.km_marker || 0).toFixed(1)}`;
+    locationEl.textContent = `${data.segment || 'Sample sector'} · KM ${Number(data.km_marker || 0).toFixed(1)}`;
     status.textContent = 'ACTIVE';
     priority.textContent = String(data.severity || 'CRITICAL').toUpperCase();
     assets.textContent = String(assetList.length);

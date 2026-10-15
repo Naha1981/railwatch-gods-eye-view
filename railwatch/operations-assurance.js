@@ -9,7 +9,7 @@
   const panel = document.createElement('section');
   panel.id = 'railwatch-ops-assurance';
   panel.setAttribute('aria-label', 'RailWatch operator assurance');
-  panel.innerHTML = `<div class="ops-head"><span class="ops-title">OPERATOR ASSURANCE</span><span class="ops-badge" id="ops-health">CHECKING</span></div><div class="ops-body"><div class="ops-grid"><div class="ops-cell"><span>STAGE</span><strong id="ops-stage">DETECT</strong></div><div class="ops-cell"><span>ESCALATION</span><strong id="ops-rule">—</strong></div><div class="ops-cell"><span>ACK SLA</span><strong id="ops-ack">—</strong></div><div class="ops-cell"><span>DISPATCH SLA</span><strong id="ops-dispatch">—</strong></div></div><div class="ops-timeline" id="ops-timeline"><div class="ops-event ops-muted">Waiting for an incident…</div></div><div class="ops-actions"><button data-action="ACKNOWLEDGE">ACK</button><button data-action="VERIFY">VERIFY</button><button data-action="DISPATCH">DISPATCH</button><button data-action="RESOLVE">RESOLVE</button><button data-action="PROVE">PROVE</button><button id="ops-replay">REPLAY</button></div><div class="ops-foot"><span id="ops-store">Storage: checking…</span><br><span>Deterministic rules are advisory workflow logic. Demo data is not certified rail-control data.</span></div></div>`;
+  panel.innerHTML = `<div class="ops-head"><span class="ops-title">OPERATOR ASSURANCE</span><span class="ops-badge" id="ops-health">CHECKING</span></div><div class="ops-body"><div class="ops-grid"><div class="ops-cell"><span>STAGE</span><strong id="ops-stage">DETECT</strong></div><div class="ops-cell"><span>ESCALATION</span><strong id="ops-rule">—</strong></div><div class="ops-cell"><span>ACK SLA</span><strong id="ops-ack">—</strong></div><div class="ops-cell"><span>DISPATCH SLA</span><strong id="ops-dispatch">—</strong></div></div><div class="ops-timeline" id="ops-timeline"><div class="ops-event ops-muted">Waiting for an incident…</div></div><div class="ops-actions"><button data-action="ACKNOWLEDGE">ACK</button><button data-action="VERIFY">VERIFY</button><button data-action="DISPATCH">DISPATCH</button><button data-action="RESOLVE">RESOLVE</button><button data-action="PROVE">PROVE</button><button id="ops-replay">REPLAY</button></div><div class="ops-foot"><span id="ops-store">Storage: checking…</span><br><span>Deterministic rules are advisory workflow logic. Sample data is not certified rail-control data.</span></div></div>`;
   document.body.appendChild(panel);
 
   const $ = id => document.getElementById(id);
@@ -17,7 +17,7 @@
   const fmt = seconds => seconds <= 0 ? 'DUE' : `${Math.floor(seconds / 60).toString().padStart(2,'0')}:${Math.floor(seconds % 60).toString().padStart(2,'0')}`;
 
   async function refreshHealth(){
-    if(window.RailWatchMode.local) { $('ops-health').textContent='LOCAL DEMO'; $('ops-store').textContent='Browser-only synthetic workflow; no server writes'; return; }
+    if(window.RailWatchMode.local) { $('ops-health').textContent='LOCAL MODE'; $('ops-store').textContent='Browser-only synthetic workflow; no server writes'; return; }
     try{
       const response = await fetch(`${apiBase}/api/v1/operations/health`, {cache:'no-store'});
       const data = await response.json();
@@ -74,10 +74,10 @@
   };
 
   async function performAction(action){
-    if(window.RailWatchMode.local) { if(!current) return; const stage={ACKNOWLEDGE:'VERIFY',VERIFY:'VERIFY',DISPATCH:'RESPOND',RESOLVE:'RESOLVE',PROVE:'PROVE'}[action]; $('ops-stage').textContent=stage; $('ops-timeline').insertAdjacentHTML('beforeend',`<div class="ops-event">${esc(action)} - LOCAL DEMO</div>`); document.dispatchEvent(new CustomEvent('railwatch:stage',{detail:{stage}})); return; }
+    if(window.RailWatchMode.local) { if(!current) return; const stage={ACKNOWLEDGE:'VERIFY',VERIFY:'VERIFY',DISPATCH:'RESPOND',RESOLVE:'RESOLVE',PROVE:'PROVE'}[action]; $('ops-stage').textContent=stage; $('ops-timeline').insertAdjacentHTML('beforeend',`<div class="ops-event">${esc(action)} - LOCAL MODE</div>`); document.dispatchEvent(new CustomEvent('railwatch:stage',{detail:{stage}})); return; }
     if(!current) return;
     const token = await getOperatorToken();
-    if(!token){ $('ops-health').textContent='DEMO AUTH UNAVAILABLE'; return; }
+    if(!token){ $('ops-health').textContent='LOCAL AUTH UNAVAILABLE'; return; }
     try{
       const response = await fetch(`${apiBase}/api/v1/incidents/${encodeURIComponent(current.event_id)}/action`, {method:'POST', headers:{'content-type':'application/json','authorization':`Bearer ${token}`}, body:JSON.stringify({action})});
       if(response.status === 401) { window.RailWatchAuth?.clear(); }

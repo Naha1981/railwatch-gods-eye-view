@@ -80,7 +80,7 @@ HELP</code></div>
   }
 
   async function request(path, options = {}) {
-    if (window.RailWatchMode.local) throw new Error('WhatsApp is disabled in the local demo');
+    if (window.RailWatchMode.local) throw new Error('WhatsApp is disabled in local mode');
     const headers = new Headers(options.headers || {});
     if (operatorToken) headers.set('Authorization', `Bearer ${operatorToken}`);
     if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
@@ -93,7 +93,7 @@ HELP</code></div>
   }
 
   async function loadDemoSession() {
-    if (window.RailWatchMode.local) { operatorStatus.textContent='LOCAL DEMO'; accountStatus.textContent='DISABLED'; setMessage('No WhatsApp accounts are paired and no messages are sent in the public demo.'); root.querySelectorAll('button:not(.whatsapp-close)').forEach(button=>button.disabled=true); return false; }
+    if (window.RailWatchMode.local) { operatorStatus.textContent='LOCAL MODE'; accountStatus.textContent='DISABLED'; setMessage('No WhatsApp accounts are paired and no messages are sent in local mode.'); root.querySelectorAll('button:not(.whatsapp-close)').forEach(button=>button.disabled=true); return false; }
     try {
       const result = await request('/api/v1/whatsapp/session', { method: 'GET' });
       operatorToken = result.token || '';
