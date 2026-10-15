@@ -121,7 +121,7 @@ try {
       await page.evaluate(() => document.dispatchEvent(new CustomEvent('railwatch:intelligence-refresh')));
       await page.waitForFunction(() => Boolean(document.querySelector('#railwatch-intelligence-panel')), { timeout: 5_000 });
       const intelligenceText = await page.$eval('#railwatch-intelligence-panel', el => el.textContent);
-      assert.equal(await page.$eval('.rw-intel-cctv-grid strong', el => el.textContent.trim()), 'DEMO-CAM-0142');
+      assert.equal(await page.$eval('.rw-intel-cctv-grid strong', el => el.textContent.trim()), 'SAMPLE-CAM-0142');
       assert.match(intelligenceText, /86\/ 100|86/);
       assert.match(intelligenceText, /HIGH RISK/);
       assert.match(intelligenceText, /GEOAGENT/);
@@ -170,7 +170,7 @@ try {
       const reportHtml = await page.waitForFunction(() => window.__railwatchCapturedReport, { timeout: 5_000 }).then(handle => handle.jsonValue());
       await page.evaluate(() => { if (window.__railwatchOriginalOpen) window.open = window.__railwatchOriginalOpen; });
       assert.match(reportHtml, /Incident Evidence Report/);
-      assert.match(reportHtml, /DEMO · NOT AN AUTHORITATIVE TRANSNET RECORD/);
+      assert.match(reportHtml, /SAMPLE · NOT AN AUTHORITATIVE TRANSNET RECORD/);
       assert.match(reportHtml, /SMOKE-DEMO-001/);
       assert.match(reportHtml, /86 \/ 100 · HIGH RISK/);
       assert.match(reportHtml, /SIGNAL/);
