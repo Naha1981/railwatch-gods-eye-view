@@ -4,11 +4,11 @@
   root.setAttribute('aria-label', 'Incident audit trail');
   root.innerHTML = `
     <header class="audit-head">
-      <div><span class="audit-kicker">AUDIT TRAIL · DEMO</span><h2>Incident activity</h2></div>
+      <div><span class="audit-kicker">AUDIT TRAIL · SAMPLE</span><h2>Incident activity</h2></div>
       <button class="audit-close" type="button" aria-label="Close">×</button>
     </header>
     <div class="audit-list" id="audit-list"><div class="audit-empty">No incident activity yet.</div></div>
-    <footer class="audit-foot">DEMO EVENTS · NOT AN AUTHORITATIVE TRANSNET AUDIT LOG</footer>
+    <footer class="audit-foot">SAMPLE EVENTS · NOT AN AUTHORITATIVE TRANSNET AUDIT LOG</footer>
   `;
   document.body.appendChild(root);
   const list = root.querySelector('#audit-list');
@@ -41,7 +41,7 @@
 
   document.addEventListener('railwatch:incident', event => {
     const data = event.detail || {};
-    add('INCIDENT DETECTED', `${data.alert_type || 'LINE BREACH'} · ${data.segment || 'Demo sector'} · KM ${Number(data.km_marker || 0).toFixed(1)}`, 'critical', false);
+    add('INCIDENT DETECTED', `${data.alert_type || 'LINE BREACH'} · ${data.segment || 'Sample sector'} · KM ${Number(data.km_marker || 0).toFixed(1)}`, 'critical', false);
   });
 
   document.addEventListener('railwatch:stage', event => {
@@ -67,11 +67,11 @@
     const el = event.target.closest('button, [role="button"]');
     if (!el) return;
     if (el.matches('[data-action="verify"]')) add('FIELD VERIFICATION', 'Operator marked selected asset for field verification', 'info', false);
-    if (el.matches('[data-action="cctv"]')) add('CCTV EVIDENCE', 'Operator opened demo CCTV evidence', 'info', false);
-    if (el.id === 'cctv-verified') add('VISUAL CHECK', 'Operator confirmed demo visual check', 'success', false);
+    if (el.matches('[data-action="cctv"]')) add('CCTV EVIDENCE', 'Operator opened sample CCTV evidence', 'info', false);
+    if (el.id === 'cctv-verified') add('VISUAL CHECK', 'Operator confirmed sample visual check', 'success', false);
     if (el.matches('.dispatch-access-btn')) add('DISPATCH REVIEW', 'Response recommendation opened', 'info', false);
-    if (el.id === 'dispatch-confirm') add('RESPONSE QUEUED', 'Demo response dispatch recorded locally', 'warning', false);
-    if (el.id === 'close-incident') add('INCIDENT CLOSED', 'Operator closed the demo incident and preserved evidence', 'success', false);
+    if (el.id === 'dispatch-confirm') add('RESPONSE QUEUED', 'Sample response dispatch recorded locally', 'warning', false);
+    if (el.id === 'close-incident') add('INCIDENT CLOSED', 'Operator closed the sample incident and preserved evidence', 'success', false);
     if (el.id === 'view-report') add('REPORT OPENED', 'Incident evidence report opened in a new tab', 'info', false);
   });
 })();

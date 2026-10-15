@@ -14,7 +14,7 @@ root.className = 'asset-operator';
 root.setAttribute('aria-label', 'Asset intelligence');
 root.innerHTML = `
   <header class="asset-operator-header">
-    <span class="asset-operator-kicker">OPERATOR LAYER · DEMO</span>
+    <span class="asset-operator-kicker">OPERATOR LAYER · SAMPLE</span>
     <div class="asset-operator-title">
       <h2>Asset intelligence</h2>
       <span id="asset-corridor">WAITING FOR EVENT</span>
@@ -32,7 +32,7 @@ root.innerHTML = `
     <button class="asset-operator-filter" data-filter="UNVERIFIED">UNVERIFIED</button>
   </nav>
   <section class="asset-operator-list" id="asset-list"></section>
-  <footer class="asset-operator-footer">PROTOTYPE ACTIONS · NO FIELD DISPATCH IS SENT FROM THIS DEMO</footer>
+  <footer class="asset-operator-footer">SIMULATED ACTIONS · NO FIELD DISPATCH IS SENT FROM THIS SYSTEM</footer>
 `;
 document.body.appendChild(root);
 
@@ -71,7 +71,7 @@ function setAction(asset, key) {
   state.actions.set(asset.asset_id, current);
   render();
   const verb = key === 'verified' ? (current.verified ? 'VERIFIED' : 'UNVERIFIED') : (current.dispatched ? 'DISPATCH QUEUED' : 'DISPATCH CLEARED');
-  showToast(`${asset.asset_type} · ${verb} · DEMO ONLY`);
+  showToast(`${asset.asset_type} · ${verb} · SIMULATED`);
 }
 
 function focusAsset(asset) {

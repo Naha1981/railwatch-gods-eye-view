@@ -19,7 +19,7 @@
       const data = events?.at(-1)?.data;
       const assets = data?.incident?.assets || [];
       const asset = assets.find(item => item.name === heading.textContent.trim());
-      if (!asset) throw new Error('Selected asset was not found in the latest demo incident');
+      if (!asset) throw new Error('Selected asset was not found in the latest sample incident');
       if (!window.RailWatchDispatch?.openForAsset) throw new Error('Dispatch module is not ready yet');
       window.RailWatchDispatch.openForAsset(asset.asset_id);
     } catch (error) {

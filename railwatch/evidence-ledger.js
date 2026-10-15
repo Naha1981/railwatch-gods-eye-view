@@ -6,7 +6,7 @@
   root.setAttribute('aria-label', 'Incident evidence ledger');
   root.innerHTML = `
     <header class="evidence-ledger-head">
-      <div><span class="evidence-ledger-kicker">EVIDENCE INTELLIGENCE · DEMO</span><h2>Case evidence ledger</h2></div>
+      <div><span class="evidence-ledger-kicker">EVIDENCE INTELLIGENCE · SAMPLE</span><h2>Case evidence ledger</h2></div>
       <button class="evidence-ledger-close" type="button" aria-label="Close evidence ledger">×</button>
     </header>
     <div class="evidence-ledger-summary">
@@ -20,7 +20,7 @@
       <button id="ledger-seal" type="button" disabled>SEAL EVIDENCE</button>
       <button id="ledger-export" type="button" disabled>EXPORT CASE JSON</button>
     </div>
-    <footer class="evidence-ledger-foot">HASHED IN BROWSER · DEMO CASE · NOT AN AUTHORITATIVE CHAIN-OF-CUSTODY RECORD</footer>
+    <footer class="evidence-ledger-foot">HASHED IN BROWSER · SAMPLE CASE · NOT AN AUTHORITATIVE CHAIN-OF-CUSTODY RECORD</footer>
   `;
   document.body.appendChild(root);
 
@@ -123,9 +123,9 @@
       eventId: String(data.event_id),
       alertType: String(data.alert_type || 'LINE_BREACH'),
       severity: String(data.severity || 'CRITICAL'),
-      segment: String(data.segment || 'Demo sector'),
+      segment: String(data.segment || 'Sample sector'),
       kmMarker: Number(data.km_marker || 0),
-      sensorId: String(data.sensor_id || 'DEMO SENSOR'),
+      sensorId: String(data.sensor_id || 'SAMPLE SENSOR'),
       startedAt: new Date().toISOString(),
     };
     entries = [];
@@ -159,7 +159,7 @@
 
   sealButton.addEventListener('click', async () => {
     if (!currentCase || sealed) return;
-    await enqueueEntry('PROVE', 'PROOF', 'Evidence package sealed by operator; chain head recorded for this demo case', { source: 'operator' });
+    await enqueueEntry('PROVE', 'PROOF', 'Evidence package sealed by operator; chain head recorded for this sample case', { source: 'operator' });
     sealed = true;
     saveAndRender();
     document.dispatchEvent(new CustomEvent('railwatch:stage', { detail: { stage: 'PROVE', source: 'evidence-ledger' } }));
@@ -190,7 +190,7 @@
     if (el.matches('[data-action="cctv"]')) enqueueEntry('VERIFY', 'CCTV', 'Visual evidence surface opened for operator review');
     if (el.id === 'cctv-verified') enqueueEntry('VERIFY', 'CONFIRM', 'Operator confirmed visual check');
     if (el.matches('.dispatch-access-btn')) enqueueEntry('RESPOND', 'REVIEW', 'Response recommendation opened for operator approval');
-    if (el.id === 'dispatch-confirm') enqueueEntry('RESPOND', 'DISPATCH', 'Demo response queued after operator approval');
+    if (el.id === 'dispatch-confirm') enqueueEntry('RESPOND', 'DISPATCH', 'Sample response queued after operator approval');
     if (el.id === 'close-incident') enqueueEntry('RESOLVE', 'CLOSE', 'Operator closed the incident workflow');
     if (el.id === 'view-report') enqueueEntry('PROVE', 'REPORT', 'Incident evidence report opened');
   });
