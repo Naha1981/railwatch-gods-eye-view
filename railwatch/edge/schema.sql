@@ -6,3 +6,13 @@ CREATE TABLE IF NOT EXISTS cases (
   updated_at TEXT NOT NULL,
   PRIMARY KEY (workspace, id)
 );
+
+CREATE TABLE IF NOT EXISTS users (
+  email TEXT PRIMARY KEY,
+  salt TEXT NOT NULL,
+  hash TEXT NOT NULL,
+  code TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  fails INTEGER NOT NULL DEFAULT 0,
+  locked_until TEXT
+);
