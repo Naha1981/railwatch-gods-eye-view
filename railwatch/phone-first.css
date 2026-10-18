@@ -8,7 +8,7 @@
   body:not(.rw-open-menu) aside.panel,
   body:not(.rw-open-assets) aside.asset-operator,
   body:not(.rw-open-evidence) aside#evidence-ledger,
-  body:not(.rw-open-guide) aside.rw-journey-guide{display:none !important}
+  body:not(.rw-open-guide) aside.rw-journey-guide{visibility:hidden !important;pointer-events:none !important}
   aside.panel,aside.asset-operator,aside#evidence-ledger,aside.rw-journey-guide{
     position:fixed !important;left:8px !important;right:8px !important;top:auto !important;bottom:78px !important;
     max-height:62dvh !important;overflow-y:auto !important;width:auto !important;transform:none !important;z-index:60 !important}
