@@ -24,6 +24,8 @@ export default {
       if(old){const o=JSON.parse(old.body);if(o.seal!==c.seal)return json(req,{error:'sealed record cannot be changed'},409);
         // only response fields may change after sealing
         const merged={...o,arrived:c.arrived,responder:c.responder};
+        const om=o.maps||[],nm=c.maps||[];
+        if(nm.length>=om.length&&om.every((m,i)=>nm[i]&&nm[i].seal===m.seal))merged.maps=nm;
         await env.DB.prepare('UPDATE cases SET body=?,updated_at=? WHERE workspace=? AND id=?').bind(JSON.stringify(merged),new Date().toISOString(),w,c.id).run();
         return json(req,{ok:true,updated:true});}
       await env.DB.prepare('INSERT INTO cases(workspace,id,sealed_at,body,updated_at) VALUES(?,?,?,?,?)').bind(w,c.id,c.sealedAt,text,new Date().toISOString()).run();

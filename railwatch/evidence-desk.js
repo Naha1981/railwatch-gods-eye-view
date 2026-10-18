@@ -5,7 +5,7 @@
   function wsCode(){return localStorage.getItem(WSK)||''}
   var syncMsg='';
   async function api(path,opt){opt=opt||{};opt.headers=Object.assign({'x-rw-workspace':wsCode(),'content-type':'application/json'},opt.headers||{});var r=await fetch(API+path,opt);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
-  async function sync(){if(!wsCode())return;try{var srv=(await api('/api/cases')).cases,loc=load(),ids={};srv.forEach(function(c){ids[c.id]=c});var merged=srv.slice();for(var i=0;i<loc.length;i++){var c=loc[i];if(!ids[c.id]){await api('/api/cases/'+c.id,{method:'PUT',body:JSON.stringify(c)});merged.push(c)}else if(c.arrived&&!ids[c.id].arrived){await api('/api/cases/'+c.id,{method:'PUT',body:JSON.stringify(c)});var m=merged.filter(function(x){return x.id===c.id})[0];m.arrived=c.arrived;m.responder=c.responder}}merged.sort(function(a,b){return a.sealedAt<b.sealedAt?-1:1});localStorage.setItem(KEY,JSON.stringify(merged));syncMsg='Synced '+new Date().toLocaleTimeString().slice(0,5)}catch(e){syncMsg='Sync failed, working offline ('+e.message+')'}render()}
+  async function sync(){if(!wsCode())return;try{var srv=(await api('/api/cases')).cases,loc=load(),ids={};srv.forEach(function(c){ids[c.id]=c});var merged=srv.slice();for(var i=0;i<loc.length;i++){var c=loc[i];if(!ids[c.id]){await api('/api/cases/'+c.id,{method:'PUT',body:JSON.stringify(c)});merged.push(c)}else if((c.arrived&&!ids[c.id].arrived)||((c.maps||[]).length>(ids[c.id].maps||[]).length)){await api('/api/cases/'+c.id,{method:'PUT',body:JSON.stringify(c)});var m=merged.filter(function(x){return x.id===c.id})[0];m.arrived=c.arrived||m.arrived;m.responder=c.responder||m.responder;if((c.maps||[]).length>(m.maps||[]).length)m.maps=c.maps}}merged.sort(function(a,b){return a.sealedAt<b.sealedAt?-1:1});localStorage.setItem(KEY,JSON.stringify(merged));syncMsg='Synced '+new Date().toLocaleTimeString().slice(0,5)}catch(e){syncMsg='Sync failed, working offline ('+e.message+')'}render()}
   var TYPES=['Cable theft','Vandalism','Line breach','Signal / equipment damage','Other'];
   function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
   function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){alert('Storage full on this device. Export the handover pack, then remove old cases.')}}
@@ -29,10 +29,10 @@
       return '<div class="rwd-case"><div class="rwd-row"><b>'+esc(c.id)+'</b><span class="rwd-badge '+(rep?'flag':'ok')+'">'+(rep?'REPEAT SITE':'SEALED')+'</span></div>'+
       '<div>'+esc(c.type)+' &middot; '+esc(c.place||c.lat.toFixed(4)+', '+c.lon.toFixed(4))+'</div>'+
       '<div class="rwd-mute">'+new Date(c.occurred).toLocaleString()+' &middot; '+c.files.length+' file(s)'+(m!=null?' &middot; response '+m+' min':' &middot; no response time yet')+'</div>'+
-      '<div class="rwd-actions"><button data-a="fly" data-id="'+c.id+'">Show on map</button><button data-a="resp" data-id="'+c.id+'">Log response</button><button data-a="pack" data-id="'+c.id+'">Handover pack</button></div></div>'}).join('');
+      '<div class="rwd-actions"><button data-a="fly" data-id="'+c.id+'">Show on map</button><button data-a="snap" data-id="'+c.id+'">Add map snapshot'+((c.maps&&c.maps.length)?' ('+c.maps.length+')':'')+'</button><button data-a="resp" data-id="'+c.id+'">Log response</button><button data-a="pack" data-id="'+c.id+'">Handover pack</button></div></div>'}).join('');
     var rs=Object.keys(hs).filter(function(k){return hs[k]>1}).length;
     sheet.innerHTML='<div class="rwd-head"><h2>Evidence desk</h2><button class="rwd-x" data-a="close" aria-label="Close">&times;</button></div>'+
-     '<div class="rwd-stats"><div><b>'+cs.length+'</b><span>Cases</span></div><div><b class="'+(rs?'flag':'')+'">'+rs+'</b><span>Repeat sites</span></div><div><b>'+cs.filter(function(c){return c.arrived}).length+'</b><span>Response logged</span></div></div>'+
+     '<p class="rwd-purpose"><b>What the map is for:</b> it shows where each incident happened and which sites repeat. Use "Add map snapshot" on a case to seal the current map view into its handover pack.</p><div class="rwd-stats"><div><b>'+cs.length+'</b><span>Cases</span></div><div><b class="'+(rs?'flag':'')+'">'+rs+'</b><span>Repeat sites</span></div><div><b>'+cs.filter(function(c){return c.arrived}).length+'</b><span>Response logged</span></div></div>'+
      '<button class="rwd-primary" data-a="new">Report a new incident</button>'+
      (rows||'<p class="rwd-mute">No incidents yet. Tap the button above to record one. Each photo or video is fingerprinted (SHA-256) and time-stamped on this device.</p>')+
      (cs.length?'<button class="rwd-link" data-a="all">Export all cases (handover pack)</button>':'')+syncBox()+'<p class="rwd-foot">Cases are kept on this device'+(wsCode()?' and in your workspace':'')+'. Support: <a href="mailto:ai-solutions@nahalabs.co.za">ai-solutions@nahalabs.co.za</a></p>';
@@ -62,6 +62,18 @@
       c.seal=await shaText(c.prev+JSON.stringify({id:c.id,type:c.type,occurred:c.occurred,sealedAt:c.sealedAt,lat:c.lat,lon:c.lon,desc:c.desc,files:files.map(function(x){return x.sha256})}));
       cs.push(c);save(cs);view="list";render();pins();sync();};
   }
+  async function snapshot(c){
+    try{
+      viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(c.lon,c.lat,20000)});
+      await new Promise(function(r){setTimeout(r,1200)});
+      for(var w=0;w<20&&!viewer.scene.globe.tilesLoaded;w++)await new Promise(function(r){setTimeout(r,500)});
+      await new Promise(function(r){setTimeout(r,800)});
+      var data=await new Promise(function(res,rej){var rm=viewer.scene.postRender.addEventListener(function(){rm();try{var src=viewer.canvas,sc=Math.min(1,900/src.width),cv=document.createElement('canvas');cv.width=src.width*sc;cv.height=src.height*sc;cv.getContext('2d').drawImage(src,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',.72))}catch(e){rej(e)}});viewer.scene.requestRender();viewer.render()});
+      var layers=['Rail corridors (schematic)','Incident pins'];if(document.querySelector('#rw-layers button[aria-pressed=true]'))layers.push('Live aircraft');
+      var m={at:new Date().toISOString(),img:data,imgSha256:await shaText(data),lat:c.lat,lon:c.lon,viewHeightM:20000,layers:layers,source:'OpenStreetMap contributors (base map), RailWatch incident reports',limits:'Rail corridors are an operational schematic, not authoritative GIS. Pin position is as reported by the user.'};
+      m.seal=await shaText((c.maps&&c.maps.length?c.maps[c.maps.length-1].seal:c.seal)+m.imgSha256+m.at+m.layers.join(','));
+      c.maps=(c.maps||[]).concat([m]);return true}catch(e){alert('Could not capture the map: '+e.message);return false}
+  }
   function arr(){return load()}
   function fly(c){try{viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(c.lon,c.lat,6000)});sheet.classList.remove('open');document.body.classList.remove('rw-open-desk')}catch(e){}}
   var ents=[];
@@ -71,7 +83,7 @@
     var w=window.open('','_blank');if(!w){alert('Allow pop-ups to open the handover pack.');return}
     var hs=hotspots(load());
     var body=list.map(function(c){var m=mins(c);return '<section><h2>'+esc(c.id)+' - '+esc(c.type)+'</h2><table><tr><th>Occurred</th><td>'+new Date(c.occurred).toString()+'</td></tr><tr><th>Sealed on device</th><td>'+c.sealedAt+'</td></tr><tr><th>Location</th><td>'+esc(c.place)+' ('+c.lat+', '+c.lon+') <a href="https://www.openstreetmap.org/?mlat='+c.lat+'&mlon='+c.lon+'#map=15/'+c.lat+'/'+c.lon+'">map</a></td></tr><tr><th>Repeat site</th><td>'+(hs[cell(c)]>1?'YES - '+hs[cell(c)]+' incidents within about 10 km':'No')+'</td></tr><tr><th>Response</th><td>'+(m!=null?'Arrived '+new Date(c.arrived).toLocaleString()+' ('+m+' min after incident)'+(c.responder?', '+esc(c.responder):''):'Not logged')+'</td></tr><tr><th>Description</th><td>'+esc(c.desc)+'</td></tr><tr><th>Record seal (SHA-256 chain)</th><td class="h">'+c.seal+'<br>previous: '+c.prev+'</td></tr></table>'+
-      c.files.map(function(x){return '<div class="f">'+(x.thumb?'<img src="'+x.thumb+'">':'')+'<div>'+esc(x.name)+' ('+Math.round(x.size/1024)+' KB)<br><span class="h">SHA-256 '+x.sha256+'</span></div></div>'}).join('')+'</section>'}).join('');
+      (c.maps||[]).map(function(m,i){return '<div class="f" style="display:block"><b>Map snapshot '+(i+1)+'</b> taken '+new Date(m.at).toLocaleString()+'<br><img style="width:100%;max-width:560px;border-radius:6px" src="'+m.img+'"><div class=h>Layers: '+esc(m.layers.join(', '))+'<br>Source: '+esc(m.source)+'<br>Limits: '+esc(m.limits)+'<br>Image SHA-256 '+m.imgSha256+'<br>Seal '+m.seal+'</div></div>'}).join('')+c.files.map(function(x){return '<div class="f">'+(x.thumb?'<img src="'+x.thumb+'">':'')+'<div>'+esc(x.name)+' ('+Math.round(x.size/1024)+' KB)<br><span class="h">SHA-256 '+x.sha256+'</span></div></div>'}).join('')+'</section>'}).join('');
     w.document.write('<!doctype html><meta charset=utf-8><title>RailWatch handover pack</title><style>body{font:14px system-ui;margin:24px;color:#111}h1{margin:0}h2{border-bottom:2px solid #f5b942;padding-bottom:4px;margin-top:28px}table{border-collapse:collapse;width:100%}th{text-align:left;width:150px;vertical-align:top;color:#555}td,th{padding:4px 6px;border-bottom:1px solid #eee}.h{font:11px monospace;word-break:break-all;color:#444}.f{display:flex;gap:10px;margin:8px 0;align-items:center}.f img{width:120px;border-radius:6px}section{page-break-inside:avoid}.n{color:#555;font-size:12px}</style><h1>RailWatch handover pack</h1><p class=n>Prepared by NahaLabs RailWatch on '+new Date().toString()+' for SAPS / insurer / security handover. Fingerprints let a third party confirm the files were not changed after sealing. Original files must be supplied with this pack.</p>'+body+'<p class=n><button onclick="print()">Print / save as PDF</button></p>');w.document.close();
   }
   sheet.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var a=b.dataset.a,id=b.dataset.id,cs=load(),c=cs.filter(function(x){return x.id===id})[0];
@@ -80,6 +92,7 @@
     if(a==='close'){document.body.classList.remove('rw-open-desk')}
     if(a==='new'){view='form';render()}if(a==='back'){view='list';render()}
     if(a==='fly'&&c)fly(c);
+    if(a==='snap'&&c){document.body.classList.remove('rw-open-desk');snapshot(c).then(function(ok){if(ok){save(cs);sync()}document.body.classList.add('rw-open-desk');render()})}
     if(a==='pack'&&c)pack([c]);if(a==='all')pack(cs);
     if(a==='resp'&&c){var t=prompt('Time the response team arrived (e.g. 2026-10-18 14:30). Leave blank for now.',new Date().toISOString().slice(0,16).replace('T',' '));if(t){var d=new Date(t.replace(' ','T'));if(isNaN(d)){alert('Could not read that time.');return}c.arrived=d.toISOString();c.responder=prompt('Who responded? (optional)')||'';save(cs);render();sync()}}});
   window.RailWatchDesk={open:function(){document.body.classList.add('rw-open-desk');view='list';render()},newReport:function(){document.body.classList.add('rw-open-desk');view='form';render()}};
