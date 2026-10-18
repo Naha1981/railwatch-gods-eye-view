@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN org_id TEXT;
+ALTER TABLE users ADD COLUMN role TEXT;
