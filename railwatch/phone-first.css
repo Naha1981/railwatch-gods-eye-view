@@ -1,0 +1,24 @@
+/* NahaLabs RailWatch: phone-first layer. Map first, one action bar, panels open on demand. */
+.rw-bar{display:none}
+@media (max-width:700px){
+  .topbar{padding:8px 12px !important;grid-template-columns:minmax(0,1fr) auto !important;top:0 !important;left:0 !important;right:0 !important;background:rgba(5,8,10,.82) !important}
+  .topbar p,.topbar .eyebrow{display:none !important}
+  .topbar h1{font-size:15px !important;margin:0 !important}
+  .topbar .status{max-width:none !important;padding:5px 8px !important}
+  body:not(.rw-open-menu) aside.panel,
+  body:not(.rw-open-assets) aside.asset-operator,
+  body:not(.rw-open-evidence) aside#evidence-ledger,
+  body:not(.rw-open-guide) aside.rw-journey-guide{display:none !important}
+  aside.panel,aside.asset-operator,aside#evidence-ledger,aside.rw-journey-guide{
+    position:fixed !important;left:8px !important;right:8px !important;top:auto !important;bottom:78px !important;
+    max-height:62dvh !important;overflow-y:auto !important;width:auto !important;transform:none !important;z-index:60 !important}
+  .rw-bar{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;position:fixed;left:0;right:0;bottom:0;z-index:70;
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:rgba(5,8,10,.92);border-top:1px solid #1f2d33}
+  .rw-bar button{min-height:48px;border-radius:10px;border:1px solid #2a3d45;background:#10181c;color:#e7ecef;font:600 12px Inter,system-ui,sans-serif;letter-spacing:.02em}
+  .rw-bar button.primary{background:#1fbf75;color:#04110b;border-color:#1fbf75;font-size:13px}
+  .rw-bar button.on{outline:2px solid #1fbf75}
+  .feed{bottom:80px !important}
+  .rw-workspace-scrim{z-index:55}
+  #incident-popover{z-index:65 !important;max-height:calc(100dvh - 160px) !important;top:56px !important}
+}
+.cesium-credit-logoContainer{display:none !important}
