@@ -1,0 +1,9 @@
+name = "railwatch-api"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "railwatch"
+database_id = "0d6bda2b-49eb-4a26-9a68-4adff38d87a2"

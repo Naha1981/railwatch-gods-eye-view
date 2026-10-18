@@ -62,3 +62,6 @@ body.rw-open-desk #rw-desk{display:block}
 #rw-layers button[aria-pressed=true]{border-color:var(--cq-primary)}
 #rw-layers span{color:var(--cq-mute);font:500 10px "JetBrains Mono",monospace;margin-left:4px}
 @media (min-width:701px){#rw-layers{top:auto;bottom:16px;right:16px}}
+.rwd-sync{display:grid;gap:6px;margin-top:14px;padding:10px;border:1px solid var(--cq-border);border-radius:10px;background:var(--cq-card);font-size:12px}
+.rwd-sync span{color:var(--cq-mute)}.rwd-sync input{min-height:44px;border-radius:8px;border:1px solid var(--cq-border);background:var(--cq-bg);color:var(--cq-fg);padding:8px;font:16px inherit}
+.rwd-sync button{min-height:44px;border-radius:10px;border:1px solid var(--cq-border);background:var(--cq-card);color:var(--cq-fg);font:600 12px inherit}
