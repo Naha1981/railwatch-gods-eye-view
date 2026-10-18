@@ -1,4 +1,4 @@
-/* RailWatch live layers (God's Eye style). Aircraft from OpenSky public API, shown only when the feed answers. */
+/* RailWatch live layers. Aircraft from OpenSky public API, shown only when the feed answers. */
 (function(){
   if(window.__rwLayers)return;window.__rwLayers=true;
   var box=document.createElement('div');box.id='rw-layers';
