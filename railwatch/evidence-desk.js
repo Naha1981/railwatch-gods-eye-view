@@ -69,7 +69,7 @@
       for(var w=0;w<20&&!viewer.scene.globe.tilesLoaded;w++)await new Promise(function(r){setTimeout(r,500)});
       await new Promise(function(r){setTimeout(r,800)});
       var data=await new Promise(function(res,rej){var rm=viewer.scene.postRender.addEventListener(function(){rm();try{var src=viewer.canvas,sc=Math.min(1,900/src.width),cv=document.createElement('canvas');cv.width=src.width*sc;cv.height=src.height*sc;cv.getContext('2d').drawImage(src,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',.72))}catch(e){rej(e)}});viewer.scene.requestRender();viewer.render()});
-      var layers=['Rail corridors (schematic)','Incident pins'];if(document.querySelector('#rw-layers button[aria-pressed=true]'))layers.push('Live aircraft');
+      var layers=['Rail corridors (schematic)','Incident pins'];if(document.querySelector('#rw-layers button[data-l=air][aria-pressed=true]'))layers.push('Live aircraft ('+((window.__rwLive||{}).air||0)+' loaded, may be outside this frame)');if(document.querySelector('#rw-layers button[data-l=ship][aria-pressed=true]'))layers.push('Live ships ('+((window.__rwLive||{}).ships||0)+' loaded for South Africa, short sample; may be outside this frame)');
       var m={at:new Date().toISOString(),img:data,imgSha256:await shaText(data),lat:c.lat,lon:c.lon,viewHeightM:20000,layers:layers,source:'OpenStreetMap contributors (base map), RailWatch incident reports',limits:'Rail corridors are an operational schematic, not authoritative GIS. Pin position is as reported by the user.'};
       m.seal=await shaText((c.maps&&c.maps.length?c.maps[c.maps.length-1].seal:c.seal)+m.imgSha256+m.at+m.layers.join(','));
       c.maps=(c.maps||[]).concat([m]);return true}catch(e){alert('Could not capture the map: '+e.message);return false}

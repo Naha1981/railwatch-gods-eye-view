@@ -56,7 +56,7 @@ body.rw-open-desk #rw-desk{display:block}
   #rw-desk{top:60px !important}
   #incident-popover{z-index:1150 !important}
 }
-#rw-layers{position:fixed;z-index:1000;right:10px;top:64px}
+#rw-layers{position:fixed;z-index:1000;right:10px;top:64px;display:flex;flex-direction:column;gap:6px}
 #rw-layers button{min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--cq-border);background:var(--cq-card);color:var(--cq-fg);font:600 12px "IBM Plex Sans",system-ui,sans-serif}
 #rw-layers button[aria-pressed=true]{border-color:var(--cq-primary)}
 #rw-layers span{color:var(--cq-mute);font:500 10px "JetBrains Mono",monospace;margin-left:4px}

@@ -8,6 +8,22 @@ export default {
   async fetch(req, env){
     if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors(req)});
     const u=new URL(req.url);
+    if(u.pathname==='/api/ships'&&req.method==='GET'){
+      const bb=(u.searchParams.get('bbox')||'').split(',').map(Number);
+      if(bb.length!==4||bb.some(function(x){return !isFinite(x)}))return json(req,{error:'bbox=south,west,north,east'},400);
+      if(!env.AISSTREAM_KEY)return json(req,{error:'ships not configured'},503);
+      const ships={};let err='';
+      try{
+        const r=await fetch('https://stream.aisstream.io/v0/stream',{headers:{Upgrade:'websocket'}});
+        const sock=r.webSocket;if(!sock)throw new Error('no socket');
+        sock.accept();
+        sock.send(JSON.stringify({APIKey:env.AISSTREAM_KEY,BoundingBoxes:[[[bb[0],bb[1]],[bb[2],bb[3]]]],FilterMessageTypes:['PositionReport']}));
+        sock.addEventListener('close',function(e){if(!err)err='closed '+e.code});sock.addEventListener('message',function(e){try{const m=JSON.parse(typeof e.data==='string'?e.data:new TextDecoder().decode(e.data));if(m.error)err=String(m.error).slice(0,120);const p=m.Message&&m.Message.PositionReport;if(p&&m.MetaData){ships[m.MetaData.MMSI]={mmsi:m.MetaData.MMSI,name:(m.MetaData.ShipName||'').trim(),lat:p.Latitude,lon:p.Longitude,speed:p.Sog,course:p.Cog,seen:m.MetaData.time_utc}}}catch(x){}});
+        await new Promise(function(res){setTimeout(res,7000)});
+        try{sock.close()}catch(x){}
+      }catch(e){err=String(e&&e.message||e)}
+      return json(req,{source:'AISStream (terrestrial AIS, sampled for 7 seconds)',count:Object.keys(ships).length,ships:Object.values(ships),error:err||undefined});
+    }
     if(u.pathname==='/api/health')return json(req,{ok:true,service:'railwatch-api'});
     const w=await ws(req);
     if(!w)return json(req,{error:'workspace code required (8+ characters)'},401);
