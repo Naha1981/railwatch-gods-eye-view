@@ -115,3 +115,5 @@ body.rw-open-desk #rw-desk{display:block}
 }
 .rw-workspace-toolbar{background:#faf7f0 !important;border-bottom:1px solid #e4dccb !important}
 .rw-workspace-toolbar *{color:#1f1a12 !important}
+.rwd-sync input{width:100%;box-sizing:border-box}.rwd-sync summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+#rwd-amsg{color:var(--cq-flag);font-weight:600}

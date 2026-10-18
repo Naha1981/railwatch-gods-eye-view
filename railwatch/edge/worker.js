@@ -1,13 +1,38 @@
 // RailWatch cases API (Cloudflare Worker + D1, free tier). A workspace is identified by the SHA-256 of a secret code.
 const ORIGINS = ['https://naha-railwatch.onrender.com','https://www.nahalabs.co.za','https://nahalabs.co.za','http://localhost:8099'];
 const MAX_BODY = 1_500_000;
-function cors(req){const o=req.headers.get('Origin')||'';return {'access-control-allow-origin':ORIGINS.includes(o)?o:ORIGINS[0],'access-control-allow-headers':'content-type,x-rw-workspace','access-control-allow-methods':'GET,PUT,OPTIONS','vary':'Origin'}}
+function cors(req){const o=req.headers.get('Origin')||'';return {'access-control-allow-origin':ORIGINS.includes(o)?o:ORIGINS[0],'access-control-allow-headers':'content-type,x-rw-workspace','access-control-allow-methods':'GET,PUT,POST,OPTIONS','vary':'Origin'}}
 function json(req,data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json',...cors(req)}})}
 async function ws(req){const c=(req.headers.get('x-rw-workspace')||'').trim();if(c.length<8||c.length>128)return null;const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('rw:'+c));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const hex=function(b){return [...new Uint8Array(b)].map(function(x){return x.toString(16).padStart(2,'0')}).join('')};
+async function pbk(pw,saltHex){const salt=new Uint8Array(saltHex.match(/../g).map(function(h){return parseInt(h,16)}));const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:salt,iterations:100000},k,256))}
+function rnd(n){return hex(crypto.getRandomValues(new Uint8Array(n)))}
+async function account(req,env,kind){
+  let b;try{b=await req.json()}catch(e){return json(req,{error:'Send email and password.'},400)}
+  const email=String(b.email||'').trim().toLowerCase(),pw=String(b.password||'');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)||email.length>200)return json(req,{error:'Enter a valid email address.'},400);
+  if(pw.length<8||pw.length>200)return json(req,{error:'Use a password of at least 8 characters.'},400);
+  const row=await env.DB.prepare('SELECT * FROM users WHERE email=?').bind(email).first();
+  if(kind==='signup'){
+    if(row)return json(req,{error:'An account with this email already exists. Log in instead.'},409);
+    const salt=rnd(16),code=rnd(24);
+    await env.DB.prepare('INSERT INTO users (email,salt,hash,code,created_at) VALUES (?,?,?,?,?)').bind(email,salt,await pbk(pw,salt),code,new Date().toISOString()).run();
+    return json(req,{email:email,code:code},201);
+  }
+  if(!row)return json(req,{error:'Email or password is not right.'},401);
+  if(row.locked_until&&row.locked_until>new Date().toISOString())return json(req,{error:'Too many tries. Wait 15 minutes and try again.'},429);
+  if(await pbk(pw,row.salt)!==row.hash){
+    const f=(row.fails||0)+1;await env.DB.prepare('UPDATE users SET fails=?,locked_until=? WHERE email=?').bind(f>=10?0:f,f>=10?new Date(Date.now()+900000).toISOString():null,email).run();
+    return json(req,{error:'Email or password is not right.'},401);
+  }
+  await env.DB.prepare('UPDATE users SET fails=0,locked_until=NULL WHERE email=?').bind(email).run();
+  return json(req,{email:email,code:row.code});
+}
 export default {
   async fetch(req, env){
     if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors(req)});
     const u=new URL(req.url);
+    if(req.method==='POST'&&(u.pathname==='/api/signup'||u.pathname==='/api/login'))return account(req,env,u.pathname.slice(5));
     if(u.pathname==='/api/ships'&&req.method==='GET'){
       const bb=(u.searchParams.get('bbox')||'').split(',').map(Number);
       if(bb.length!==4||bb.some(function(x){return !isFinite(x)}))return json(req,{error:'bbox=south,west,north,east'},400);

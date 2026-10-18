@@ -37,7 +37,11 @@
      (rows||'<p class="rwd-mute">No incidents yet. Tap the button above to record one. Each photo or video is fingerprinted (SHA-256) and time-stamped on this device.</p>')+
      (cs.length?'<button class="rwd-link" data-a="all">Export all cases (handover pack)</button>':'')+syncBox()+'<p class="rwd-foot">Cases are kept on this device'+(wsCode()?' and in your workspace':'')+'. Support: <a href="mailto:ai-solutions@nahalabs.co.za">ai-solutions@nahalabs.co.za</a></p>';
   }
-  function syncBox(){return wsCode()?'<div class="rwd-sync"><b>Workspace sync on</b><span>'+esc(syncMsg||'Connecting...')+'</span><button data-a="leave">Turn off</button></div>':'<div class="rwd-sync"><b>Use on more than one device</b><span>Pick a workspace code (8+ characters) and enter the same code on every device. Anyone with the code can see these cases.</span><input id="rwd-code" placeholder="Workspace code" autocomplete="off"><button data-a="join">Turn on sync</button></div>'}
+  function acct(){return localStorage.getItem('rw.acct')||''}
+  function syncBox(){
+    if(acct()&&wsCode())return '<div class="rwd-sync"><b>Signed in</b><span>'+esc(acct())+'. '+esc(syncMsg||'Connecting...')+' Your cases are saved to your account and open on any device you log in on.</span><button data-a="signout">Sign out</button></div>';
+    var code=wsCode()?'<div class="rwd-sync"><b>Workspace sync on</b><span>'+esc(syncMsg||'Connecting...')+'</span><button data-a="leave">Turn off</button></div>':'<details class="rwd-sync"><summary><b>Use a workspace code instead</b></summary><span>Pick a code (8+ characters) and enter the same code on every device. Anyone with the code can see these cases.</span><input id="rwd-code" placeholder="Workspace code" autocomplete="off"><button data-a="join">Turn on sync</button></details>';
+    return '<div class="rwd-sync"><b>Create a free account or log in</b><span>Save your cases to your account and open them on any phone or computer. <b>Then:</b> enter your email and a password and tap <b>Create account</b>, or <b>Log in</b> if you already have one.</span><input id="rwd-email" type="email" placeholder="Email" autocomplete="email"><input id="rwd-pass" type="password" placeholder="Password (8+ characters)" autocomplete="current-password"><button data-a="signup" class="rwd-primary" style="margin:0">Create account</button><button data-a="login">Log in</button><span id="rwd-amsg" role="status"></span></div>'+code}
   function formHtml(){
     var now=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
     return '<div class="rwd-head"><h2>Report incident</h2><button class="rwd-x" data-a="back" aria-label="Back">&times;</button></div>'+
@@ -87,8 +91,11 @@
     w.document.write('<!doctype html><meta charset=utf-8><title>RailWatch handover pack</title><style>body{font:14px system-ui;margin:24px;color:#111}h1{margin:0}h2{border-bottom:2px solid #f5b942;padding-bottom:4px;margin-top:28px}table{border-collapse:collapse;width:100%}th{text-align:left;width:150px;vertical-align:top;color:#555}td,th{padding:4px 6px;border-bottom:1px solid #eee}.h{font:11px monospace;word-break:break-all;color:#444}.f{display:flex;gap:10px;margin:8px 0;align-items:center}.f img{width:120px;border-radius:6px}section{page-break-inside:avoid}.n{color:#555;font-size:12px}</style><h1>RailWatch handover pack</h1><p class=n>Prepared by NahaLabs RailWatch on '+new Date().toString()+' for SAPS / insurer / security handover. Fingerprints let a third party confirm the files were not changed after sealing. Original files must be supplied with this pack.</p>'+body+'<p class=n><button onclick="print()">Print / save as PDF</button></p>');w.document.close();
   }
   sheet.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var a=b.dataset.a,id=b.dataset.id,cs=load(),c=cs.filter(function(x){return x.id===id})[0];
+    if(a==='signup'||a==='login'){var em=(sheet.querySelector('#rwd-email').value||'').trim(),pw=sheet.querySelector('#rwd-pass').value||'',am=sheet.querySelector('#rwd-amsg');am.textContent='Please wait...';
+      fetch(API+'/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:em,password:pw})}).then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d}})}).then(function(x){if(!x.ok){am.textContent=x.d.error||'Something went wrong. Try again.';return}localStorage.setItem(WSK,x.d.code);localStorage.setItem('rw.acct',x.d.email);syncMsg='Connecting...';render();sync()}).catch(function(){am.textContent='No connection. Try again.'});return}
+    if(a==='signout'){localStorage.removeItem(WSK);localStorage.removeItem('rw.acct');syncMsg='';render();return}
     if(a==='join'){var v=(sheet.querySelector('#rwd-code').value||'').trim();if(v.length<8){alert('Use at least 8 characters.');return}localStorage.setItem(WSK,v);syncMsg='Connecting...';render();sync();return}
-    if(a==='leave'){localStorage.removeItem(WSK);syncMsg='';render();return}
+    if(a==='leave'){localStorage.removeItem(WSK);localStorage.removeItem('rw.acct');syncMsg='';render();return}
     if(a==='close'){document.body.classList.remove('rw-open-desk')}
     if(a==='new'){view='form';render()}if(a==='back'){view='list';render()}
     if(a==='fly'&&c)fly(c);
@@ -96,6 +103,6 @@
     if(a==='pack'&&c)pack([c]);if(a==='all')pack(cs);
     if(a==='resp'&&c){var t=prompt('Time the response team arrived (e.g. 2026-10-18 14:30). Leave blank for now.',new Date().toISOString().slice(0,16).replace('T',' '));if(t){var d=new Date(t.replace(' ','T'));if(isNaN(d)){alert('Could not read that time.');return}c.arrived=d.toISOString();c.responder=prompt('Who responded? (optional)')||'';save(cs);render();sync()}}});
   window.RailWatchDesk={open:function(){document.body.classList.add('rw-open-desk');view='list';render()},newReport:function(){document.body.classList.add('rw-open-desk');view='form';render()}};
-  new MutationObserver(function(){if(document.body.classList.contains('rw-open-desk')&&view!=='form')render()}).observe(document.body,{attributes:true,attributeFilter:['class']});
+  new MutationObserver(function(){if(document.body.classList.contains('rw-open-desk')&&view!=='form'&&!(document.activeElement&&sheet.contains(document.activeElement)&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))render()}).observe(document.body,{attributes:true,attributeFilter:['class']});
   setTimeout(function(){pins();sync()},1500);render();
 })();
