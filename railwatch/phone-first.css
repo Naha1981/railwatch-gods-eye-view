@@ -22,3 +22,38 @@
   #incident-popover{z-index:65 !important;max-height:calc(100dvh - 160px) !important;top:56px !important}
 }
 .cesium-credit-logoContainer{display:none !important}
+
+/* CargoIQ design tokens (same palette as CargoIQ: slate base, amber primary, red DISPUTE/flag). */
+:root{--cq-bg:oklch(0.17 0.012 240);--cq-card:oklch(0.21 0.013 240);--cq-border:oklch(0.3 0.013 240);--cq-fg:oklch(0.95 0.005 240);--cq-mute:oklch(0.68 0.015 240);--cq-primary:oklch(0.82 0.15 75);--cq-flag:oklch(0.68 0.2 25);--cq-ok:oklch(0.78 0.13 175);--cq-derived:oklch(0.82 0.15 75)}
+#rw-desk{display:none;position:fixed;left:8px;right:8px;bottom:78px;top:56px;z-index:62;overflow-y:auto;background:var(--cq-bg);color:var(--cq-fg);border:1px solid var(--cq-border);border-radius:12px;padding:14px;font:14px "IBM Plex Sans",Inter,system-ui,sans-serif;box-sizing:border-box}
+body.rw-open-desk #rw-desk{display:block}
+@media (min-width:701px){#rw-desk{left:auto;width:420px;bottom:16px;top:16px;right:16px}}
+#rw-desk h2{margin:0;font-size:18px}
+.rwd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.rwd-x{background:none;border:0;color:var(--cq-mute);font-size:26px;min-width:44px;min-height:44px}
+.rwd-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.rwd-stats div{background:var(--cq-card);border:1px solid var(--cq-border);border-radius:8px;padding:8px}
+.rwd-stats b{display:block;font:500 22px "JetBrains Mono",monospace}.rwd-stats b.flag{color:var(--cq-derived)}
+.rwd-stats span,.rwd-mute{color:var(--cq-mute);font-size:12px}
+.rwd-primary{width:100%;min-height:48px;border-radius:10px;border:0;background:var(--cq-primary);color:#1b1304;font:700 14px inherit;margin:6px 0 12px}
+.rwd-sec,.rwd-link,.rwd-actions button{min-height:44px;border-radius:10px;border:1px solid var(--cq-border);background:var(--cq-card);color:var(--cq-fg);font:600 12px inherit;padding:0 12px}
+.rwd-link{width:100%;margin-top:10px}
+.rwd-case{background:var(--cq-card);border:1px solid var(--cq-border);border-radius:10px;padding:10px;margin-bottom:10px;display:grid;gap:4px}
+.rwd-row{display:flex;justify-content:space-between;align-items:center}
+.rwd-badge{font:600 10px "JetBrains Mono",monospace;letter-spacing:.06em;padding:3px 7px;border-radius:5px}
+.rwd-badge.ok{color:var(--cq-ok);border:1px solid color-mix(in oklch,var(--cq-ok) 40%,transparent);background:color-mix(in oklch,var(--cq-ok) 12%,transparent)}
+.rwd-badge.flag{color:var(--cq-derived);border:1px solid color-mix(in oklch,var(--cq-derived) 45%,transparent);background:color-mix(in oklch,var(--cq-derived) 14%,transparent)}
+.rwd-foot{margin-top:14px;font-size:12px;color:var(--cq-mute)}.rwd-foot a{color:var(--cq-primary)}
+.rwd-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+#rwd-form{display:grid;gap:10px}#rwd-form label{display:grid;gap:4px;font-size:12px;color:var(--cq-mute)}
+#rwd-form input,#rwd-form select,#rwd-form textarea{min-height:44px;border-radius:8px;border:1px solid var(--cq-border);background:var(--cq-card);color:var(--cq-fg);padding:8px;font:16px inherit;box-sizing:border-box;width:100%}
+.rwd-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:700px){
+  .topbar{top:0 !important;left:0 !important;right:0 !important;border-radius:0 !important}
+  .control-room-status:not(.has-incident){display:none !important}
+  .control-room-status .crs-metrics{display:none !important}
+  aside.panel,aside.asset-operator,aside#evidence-ledger,aside.rw-journey-guide,#rw-desk{z-index:1100 !important}
+  .rw-bar{z-index:1200 !important}
+  #rw-desk{top:60px !important}
+  #incident-popover{z-index:1150 !important}
+}
