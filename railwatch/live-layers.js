@@ -13,7 +13,7 @@
       if(!r.ok)throw new Error('HTTP '+r.status);
       var d=await r.json();clear();
       (d.states||[]).forEach(function(a){if(a[5]==null||a[6]==null)return;
-        ents.push(viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(a[5],a[6],(a[7]||0)),point:{pixelSize:6,color:Cesium.Color.fromCssColorString('#7aa7ff'),disableDepthTestDistance:Number.POSITIVE_INFINITY},label:{text:(a[1]||'').trim(),font:'10px sans-serif',pixelOffset:new Cesium.Cartesian2(0,-12),scale:.9,showBackground:true,disableDepthTestDistance:Number.POSITIVE_INFINITY}}))});
+        var en=viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(a[5],a[6],(a[7]||0)),point:{pixelSize:6,color:Cesium.Color.fromCssColorString('#7aa7ff'),disableDepthTestDistance:Number.POSITIVE_INFINITY},label:{text:(a[1]||'').trim(),font:'10px sans-serif',pixelOffset:new Cesium.Cartesian2(0,-12),scale:.9,showBackground:true,disableDepthTestDistance:Number.POSITIVE_INFINITY}});en.rwInfo={kind:'Aircraft (live)',title:(a[1]||'').trim()||('Aircraft '+a[0]),rows:[['Registered in',a[2]||'Unknown'],['Height',a[7]!=null?Math.round(a[7])+' m':'Unknown'],['Speed',a[9]!=null?Math.round(a[9]*3.6)+' km/h':'Unknown'],['Heading',a[10]!=null?Math.round(a[10])+' degrees':'Unknown'],['On the ground',a[8]?'Yes':'No'],['Last update',a[4]?new Date(a[4]*1000).toLocaleTimeString():'Unknown'],['In a case',"No"]],note:'Public flight data from OpenSky.'};ents.push(en)});
       s.textContent=ents.length+' live · '+new Date().toLocaleTimeString().slice(0,5);
     }catch(e){s.textContent='feed unavailable';clear()}
   }
