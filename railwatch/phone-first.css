@@ -78,3 +78,40 @@ body.rw-open-desk #rw-desk{display:block}
 .rwp-badge.repeat{color:var(--cq-derived);border-color:var(--cq-derived)}.rwp-badge.ok{color:var(--cq-ok);border-color:var(--cq-ok)}.rwp-badge.dispute{color:var(--cq-flag);border-color:var(--cq-flag)}
 
 .rwd-purpose{margin:0 0 10px;font-size:12px;color:var(--cq-mute);line-height:1.45}.rwd-purpose b{color:var(--cq-fg)}
+
+/* NahaLabs ivory theme (design bar: light ivory, large type, rounded cards, plain purpose line, status chips, honest limits). */
+:root{--cq-bg:#faf7f0;--cq-card:#fffdf8;--cq-border:#e4dccb;--cq-fg:#1f1a12;--cq-mute:#6b6252;--cq-primary:#e8a317;--cq-flag:#b3261e;--cq-ok:#1c6b3a;--cq-derived:#8a5a00}
+#rw-desk,#rw-preview{font-size:16px;box-shadow:0 10px 30px rgba(60,45,10,.18)}
+#rw-desk h2{font-size:26px}
+.rwd-stats div,.rwd-case{border-radius:14px;background:var(--cq-card)}
+.rwd-stats b{font:600 24px "IBM Plex Sans",system-ui,sans-serif}
+.rwd-primary{font-size:16px;min-height:52px;border-radius:14px;color:#1f1a12}
+.rwd-sec,.rwd-link,.rwd-actions button{font-size:14px;border-radius:12px}
+.rwd-badge{font:600 12px "IBM Plex Sans",system-ui,sans-serif;letter-spacing:0;border-radius:999px;padding:3px 10px;background:#efe9da}
+.rwd-badge.ok{background:#e1f2e6;color:var(--cq-ok);border-color:#b9dcc4}
+.rwd-badge.flag{background:#fdebd0;color:var(--cq-derived);border-color:#f0cf93}
+.rwd-purpose,.rwd-foot,.rwd-mute{font-size:14px}
+#rwd-form input,#rwd-form select,#rwd-form textarea,.rwd-sync input{background:#fff;color:var(--cq-fg);border:1px solid var(--cq-border);font-size:16px}
+#rw-layers button{background:#fffdf8;color:var(--cq-fg);box-shadow:0 2px 8px rgba(60,45,10,.15)}
+#rw-preview{font-size:15px}
+@media (max-width:700px){
+  .topbar{background:rgba(250,247,240,.96) !important;color:#1f1a12 !important;border-bottom:1px solid #e4dccb !important}
+  .topbar h1,.topbar *{color:#1f1a12 !important}
+  .rw-bar{background:rgba(250,247,240,.97);border-top:1px solid #e4dccb}
+  .rw-bar button{background:#fffdf8;border-color:#e4dccb;color:#1f1a12;font-size:14px;border-radius:12px}
+  .rw-bar button.primary{background:#e8a317;border-color:#e8a317;color:#1f1a12;font-size:15px}
+  .rw-bar button.on{outline:2px solid #e8a317}
+  aside.panel,aside.asset-operator,aside#evidence-ledger,aside.rw-journey-guide{background:#faf7f0 !important;color:#1f1a12 !important;border:1px solid #e4dccb !important;border-radius:14px !important}
+  aside.panel *,aside.asset-operator *,aside#evidence-ledger *,aside.rw-journey-guide *{color:inherit}
+}
+.topbar .status{background:#fffdf8 !important;border:1px solid #e4dccb !important;border-radius:999px !important;color:#6b6252 !important;font:600 12px "IBM Plex Sans",system-ui,sans-serif !important;letter-spacing:0 !important;text-transform:none !important}
+.topbar .status *{color:#6b6252 !important;font:inherit !important}
+.rwd-sec,.rwd-link,.rwd-actions button{font-weight:600}
+@media (max-width:700px){
+  aside.panel button,aside.asset-operator button,aside#evidence-ledger button,aside.rw-journey-guide button{background:#fffdf8 !important;color:#1f1a12 !important;border:1px solid #e4dccb !important;border-radius:12px !important;min-height:48px;font:700 14px "IBM Plex Sans",system-ui,sans-serif !important;letter-spacing:0 !important;text-transform:none !important;margin:4px 0}
+  aside.panel *,aside.asset-operator *,aside#evidence-ledger *,aside.rw-journey-guide *{font-family:"IBM Plex Sans",system-ui,sans-serif !important;letter-spacing:0 !important;text-transform:none !important}
+  aside.panel input,aside.panel select,aside.panel textarea,aside.asset-operator input,aside.asset-operator select,aside.asset-operator textarea,aside#evidence-ledger input,aside#evidence-ledger select,aside#evidence-ledger textarea{background:#fff !important;color:#1f1a12 !important;border:1px solid #e4dccb !important;border-radius:10px !important;font-size:16px !important}
+  aside.panel,aside.asset-operator,aside#evidence-ledger,aside.rw-journey-guide{font-size:16px !important}
+}
+.rw-workspace-toolbar{background:#faf7f0 !important;border-bottom:1px solid #e4dccb !important}
+.rw-workspace-toolbar *{color:#1f1a12 !important}
