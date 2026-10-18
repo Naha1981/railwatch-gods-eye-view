@@ -22,7 +22,7 @@ export default {
         await new Promise(function(res){setTimeout(res,7000)});
         try{sock.close()}catch(x){}
       }catch(e){err=String(e&&e.message||e)}
-      return json(req,{source:'AISStream (terrestrial AIS, sampled for 7 seconds)',count:Object.keys(ships).length,ships:Object.values(ships),error:err||undefined});
+      return json(req,{source:'Live ship tracking (short sample)',count:Object.keys(ships).length,ships:Object.values(ships),error:err||undefined});
     }
     if(u.pathname==='/api/health')return json(req,{ok:true,service:'railwatch-api'});
     const w=await ws(req);
