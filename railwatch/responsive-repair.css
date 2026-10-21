@@ -23,3 +23,16 @@
 @media (min-width: 701px) and (max-width: 900px) {
   .feed { top: var(--rw-topbar-bottom, 200px); }
 }
+
+/* Desktop: the asset operator panel (z-index 1500, right:18) completely covers
+   .feed (z-index 1000, right:18), so demo alerts and the reported-incidents
+   section were invisible on desktop. Shift the feed left of the asset panel. */
+@media (min-width:901px){
+  .feed{right:394px}
+}
+
+/* The workspace dock (OPEN INCIDENT etc.) collides with the bottom action bar
+   on phone and mid-width. Raise it above the bar. */
+@media (max-width:1050px){
+  .rw-workspace-dock{bottom:88px}
+}

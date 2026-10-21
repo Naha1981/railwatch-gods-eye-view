@@ -65,6 +65,7 @@
     if (type === 'dispatch') return document.querySelector('.dispatch-intelligence');
     if (type === 'resolution') return document.querySelector('.resolution-intelligence');
     if (type === 'whatsapp') return document.querySelector('.whatsapp-panel');
+    if (type === 'ai') return document.querySelector('.ai-intelligence-panel');
     return null;
   }
 

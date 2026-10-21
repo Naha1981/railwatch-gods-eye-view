@@ -238,4 +238,8 @@ document.getElementById('demo-alert').addEventListener('click',async()=>{
 
 incidentPopover.addEventListener('mouseenter',()=>{viewer.scene.canvas.style.cursor='default';});
 incidentPopover.addEventListener('mouseleave',()=>{if(currentIncident) viewer.scene.canvas.style.cursor='default';});
-if (window.RailWatchMode.local) { wsLabel.textContent='LOCAL MODE'; clientCount.textContent='N/A'; document.querySelector('.topbar p').textContent='Browser-only synthetic data - no live railway data or messages'; } else { connect(); refreshHealth(); setInterval(refreshHealth,60000); }
+if (window.RailWatchMode.local) { wsLabel.textContent='LOCAL MODE'; clientCount.textContent='N/A';
+  const sub=document.querySelector('.topbar p');
+  const syncNote=()=>{ sub.textContent = localStorage.getItem('rw.tok') ? 'Demo railway data - your sealed evidence cases sync to your account' : 'Demo railway data - report real evidence on the Evidence desk'; };
+  syncNote(); window.addEventListener('storage',syncNote); document.addEventListener('rw:account',syncNote);
+} else { connect(); refreshHealth(); setInterval(refreshHealth,60000); }

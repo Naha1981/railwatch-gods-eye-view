@@ -1,5 +1,6 @@
 /* NahaLabs RailWatch: phone-first layer. Map first, one action bar, panels open on demand. */
 .rw-bar{display:none}
+.rw-bar button[data-k=ops]{display:none}
 @media (max-width:700px){
   .topbar{padding:8px 12px !important;grid-template-columns:minmax(0,1fr) auto !important;top:0 !important;left:0 !important;right:0 !important;background:rgba(5,8,10,.82) !important}
   .topbar p,.topbar .eyebrow{display:none !important}
@@ -21,12 +22,18 @@
   .rw-workspace-scrim{z-index:55}
   #incident-popover{z-index:65 !important;max-height:calc(100dvh - 160px) !important;top:56px !important}
 }
+@media (min-width:701px){
+  .rw-bar{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;position:fixed;left:50%;transform:translateX(-50%);bottom:16px;width:min(560px,calc(100vw - 480px));min-width:380px;z-index:1200;padding:8px;background:rgba(5,8,10,.92);border:1px solid #1f2d33;border-radius:14px}
+  .rw-bar button{min-height:44px;border-radius:10px;border:1px solid #2a3d45;background:#10181c;color:#e7ecef;font:600 12px Inter,system-ui,sans-serif;letter-spacing:.02em;cursor:pointer}
+  .rw-bar button.primary{background:#1fbf75;color:#04110b;border-color:#1fbf75;font-size:13px}
+  .rw-bar button.on{outline:2px solid #1fbf75}
+}
 .cesium-credit-logoContainer{display:none !important}
 
 /* CargoIQ design tokens (same palette as CargoIQ: slate base, amber primary, red DISPUTE/flag). */
 :root{--cq-bg:oklch(0.17 0.012 240);--cq-card:oklch(0.21 0.013 240);--cq-border:oklch(0.3 0.013 240);--cq-fg:oklch(0.95 0.005 240);--cq-mute:oklch(0.68 0.015 240);--cq-primary:oklch(0.82 0.15 75);--cq-flag:oklch(0.68 0.2 25);--cq-ok:oklch(0.78 0.13 175);--cq-derived:oklch(0.82 0.15 75)}
 #rw-desk{display:none;position:fixed;left:8px;right:8px;bottom:78px;top:56px;z-index:62;overflow-y:auto;background:var(--cq-bg);color:var(--cq-fg);border:1px solid var(--cq-border);border-radius:12px;padding:14px;font:14px "IBM Plex Sans",Inter,system-ui,sans-serif;box-sizing:border-box}
-body.rw-open-desk #rw-desk{display:block}
+body.rw-open-desk #rw-desk{display:block;z-index:1600}
 @media (min-width:701px){#rw-desk{left:auto;width:420px;bottom:16px;top:16px;right:16px}}
 #rw-desk h2{margin:0;font-size:18px}
 .rwd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -60,7 +67,7 @@ body.rw-open-desk #rw-desk{display:block}
 #rw-layers button{min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--cq-border);background:var(--cq-card);color:var(--cq-fg);font:600 12px "IBM Plex Sans",system-ui,sans-serif}
 #rw-layers button[aria-pressed=true]{border-color:var(--cq-primary)}
 #rw-layers span{color:var(--cq-mute);font:500 10px "JetBrains Mono",monospace;margin-left:4px}
-@media (min-width:701px){#rw-layers{top:auto;bottom:16px;right:16px}}
+@media (min-width:701px){#rw-layers{top:auto;bottom:16px;right:396px}}
 .rwd-sync{display:grid;gap:6px;margin-top:14px;padding:10px;border:1px solid var(--cq-border);border-radius:10px;background:var(--cq-card);font-size:12px}
 .rwd-sync span{color:var(--cq-mute)}.rwd-sync input{min-height:44px;border-radius:8px;border:1px solid var(--cq-border);background:var(--cq-bg);color:var(--cq-fg);padding:8px;font:16px inherit}
 .rwd-sync button{min-height:44px;border-radius:10px;border:1px solid var(--cq-border);background:var(--cq-card);color:var(--cq-fg);font:600 12px inherit}
@@ -115,5 +122,29 @@ body.rw-open-desk #rw-desk{display:block}
 }
 .rw-workspace-toolbar{background:#faf7f0 !important;border-bottom:1px solid #e4dccb !important}
 .rw-workspace-toolbar *{color:#1f1a12 !important}
+.rw-workspace-toolbar button{background:#0e1519 !important;color:#cad4d8 !important;border:1px solid rgba(31,26,18,.25) !important}
+.rw-workspace-toolbar button.primary{background:#dceff2 !important;color:#071014 !important}
+.rw-workspace-toolbar .rw-toolbar-spacer{color:transparent !important}
 .rwd-sync input{width:100%;box-sizing:border-box}.rwd-sync summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
 #rwd-amsg{color:var(--cq-flag);font-weight:600}
+
+/* Mid-width / tablet (701-1050px): one active panel at a time, same model as
+   phone. The map and the right-hand ops column stay visible; the nav panel and
+   asset sheet open as overlay sheets from the action bar (Menu / Assets),
+   never simultaneously. */
+@media (min-width:701px) and (max-width:1050px){
+  body:not(.rw-open-menu) aside.panel,
+  body:not(.rw-open-assets) aside.asset-operator{visibility:hidden !important;pointer-events:none !important}
+  aside.panel,aside.asset-operator{
+    position:fixed !important;left:12px !important;right:auto !important;top:auto !important;bottom:84px !important;
+    width:min(430px,calc(100vw - 24px)) !important;max-height:calc(100dvh - 240px) !important;
+    overflow-y:auto !important;transform:none !important;z-index:1300 !important}
+  .rw-bar{left:12px;right:12px;bottom:8px;width:auto;min-width:0;transform:none;grid-template-columns:2fr 1fr 1fr 1fr 1fr}
+  .rw-bar button[data-k=ops]{display:block}
+  .rw-journey-guide{left:12px;right:12px;top:var(--rw-topbar-bottom,134px);width:auto;min-width:0;transform:none;max-height:calc(100dvh - 240px);overflow:auto}
+  .feed{left:auto;right:18px;width:340px;top:var(--rw-topbar-bottom,134px);max-height:80px;z-index:1000}
+  .feed:has(.rw-feed-collapsible.open){max-height:40vh}
+  body:not(.rw-open-ops) #railwatch-ops-assurance{visibility:hidden !important;pointer-events:none !important}
+  #railwatch-ops-assurance{left:auto;right:18px;width:340px;top:calc(var(--rw-topbar-bottom,134px) + 88px);bottom:84px;max-height:none;overflow:auto;z-index:1100}
+  .rw-workspace-dock{bottom:88px}
+}
