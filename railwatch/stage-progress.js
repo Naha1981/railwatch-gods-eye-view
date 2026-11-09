@@ -1,11 +1,14 @@
 (() => {
   const stages = ['DETECT','LOCATE','VERIFY','RESPOND','RESOLVE','PROVE'];
   let current = 'DETECT';
+  let currentIncidentId = null;
 
   function setStage(stage) {
-    if (!window.RailWatchControlRoom?.setResolutionStage) return;
+    if (!stages.includes(stage) || stages.indexOf(stage) < stages.indexOf(current)) return;
+    const changed = current !== stage;
     current = stage;
-    window.RailWatchControlRoom.setResolutionStage(stage);
+    window.RailWatchControlRoom?.setResolutionStage(stage);
+    if (changed) document.dispatchEvent(new CustomEvent('railwatch:stage', {detail:{stage,source:'stage-progress'}}));
   }
 
   function advance(target) {
@@ -51,6 +54,17 @@
     if (el.id === 'close-incident') {
       setTimeout(() => advance('PROVE'), 120);
     }
+  });
+
+  document.addEventListener('railwatch:incident', event => {
+    const nextId = event.detail?.event_id;
+    if (!nextId || nextId === currentIncidentId) return;
+    currentIncidentId = nextId;
+    current = 'DETECT';
+  });
+  document.addEventListener('railwatch:stage', event => {
+    const stage = event.detail?.stage;
+    if (stages.includes(stage) && stages.indexOf(stage) >= stages.indexOf(current)) current = stage;
   });
 
   window.RailWatchStageProgress = { setStage, advance };

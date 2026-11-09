@@ -1,5 +1,6 @@
 (() => {
   let acknowledged = false;
+  let incidentId = null;
 
   function renderButton() {
     const root = document.getElementById('incident-popover');
@@ -14,13 +15,17 @@
     button.type = 'button';
     button.dataset.acknowledgeIncident = 'true';
     button.className = 'operator-btn incident-acknowledge';
+    button.disabled = acknowledged;
+    button.classList.toggle('acknowledged', acknowledged);
     button.textContent = acknowledged ? '✓ INCIDENT ACKNOWLEDGED' : 'ACKNOWLEDGE INCIDENT';
 
     button.addEventListener('click', () => {
+      if (acknowledged) return;
       acknowledged = true;
+      button.disabled = true;
       button.textContent = '✓ INCIDENT ACKNOWLEDGED';
       button.classList.add('acknowledged');
-      document.dispatchEvent(new CustomEvent('railwatch:incident-acknowledged'));
+      document.dispatchEvent(new CustomEvent('railwatch:incident-acknowledged', {detail:{event_id:incidentId}}));
       window.RailWatchStageProgress?.advance('LOCATE');
     });
 
@@ -41,6 +46,15 @@
   document.addEventListener('click', event => {
     const closeOrBack = event.target.closest('#incident-popover .back-to-incident, #incident-popover .back-to-asset, #incident-popover [data-action="cctv"]');
     if (closeOrBack) refresh();
+  });
+
+  document.addEventListener('railwatch:incident', event => {
+    const nextId = event.detail?.event_id;
+    if (!nextId || nextId === incidentId) return;
+    incidentId = nextId;
+    acknowledged = false;
+    document.querySelector('[data-acknowledge-incident]')?.remove();
+    refresh();
   });
 
   refresh();

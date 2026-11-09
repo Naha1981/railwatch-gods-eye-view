@@ -1,8 +1,18 @@
 (() => {
   const VIDEO_MP4_URL = 'https://www.openbeelden.nl/files/55/55145.55131.WEEKNUMMER393-HRE0002A506.mp4';
-  const VIDEO_WEBM_URL = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/7/7a/Transnet_diesel_locomotives-and-goods-train_crossing_road_and_entering_station_South_Africa.webm/Transnet_diesel_locomotives-and-goods-train_crossing_road_and_entering_station_South_Africa.webm.360p.webm';
   const SOURCE_URL = 'https://www.openbeelden.nl/media/55132/Opening_van_de_spoorwegtentoonstelling.en';
   let overlay;
+  let loadingTimer;
+  function clearLoadingTimer() { clearTimeout(loadingTimer); loadingTimer = undefined; }
+  function unavailable() {
+    if (!overlay?.classList.contains('visible')) return;
+    clearLoadingTimer();
+    overlay.querySelector('#rw-cctv-feed-status').textContent = 'REFERENCE VIDEO UNAVAILABLE - NOT VISUALLY VERIFIED';
+    overlay.querySelector('#rw-cctv-feed-state').textContent = 'UNAVAILABLE';
+    overlay.querySelector('#rw-cctv-availability').textContent = 'NOT VERIFIED';
+    overlay.querySelector('#rw-cctv-availability').className = 'warning';
+    overlay.querySelector('#rw-cctv-retry').hidden = false;
+  }
 
   function ensureOverlay() {
     if (overlay) return overlay;
@@ -21,15 +31,15 @@
         <div class="rw-cctv-stage">
           <video id="rw-cctv-video" controls autoplay muted loop playsinline preload="auto" poster="https://www.openbeelden.nl/images/598912/vlcsnap-208355.png">
             <source src="${VIDEO_MP4_URL}" type="video/mp4" />
-            <source src="${VIDEO_WEBM_URL}" type="video/webm" />
             Your browser could not load the CCTV reference video.
           </video>
           <div class="rw-cctv-badge">SAMPLE EVIDENCE</div>
-          <div class="rw-cctv-rec">● RECORDING REFERENCE</div>
+          <div class="rw-cctv-rec">RECORDED SAMPLE · NOT LIVE</div>
           <div class="rw-cctv-overlayline"><span id="rw-cctv-location">RAIL CORRIDOR</span><span id="rw-cctv-time">--:--:-- SAST</span></div>
           <div class="rw-cctv-feed-status" id="rw-cctv-feed-status">LOADING VIDEO…</div>
         </div>
-        <div class="rw-cctv-caption"><span class="positive" id="rw-cctv-availability">VIDEO LOADING</span><span>OPERATOR VIEW · VISUAL VERIFICATION</span></div>
+        <button id="rw-cctv-retry" type="button" hidden>Retry reference video</button>
+        <div class="rw-cctv-caption"><span class="positive" id="rw-cctv-availability">VIDEO LOADING</span><span>REFERENCE ONLY · NOT VERIFICATION</span></div>
         <div class="rw-cctv-grid">
           <div class="rw-cctv-kpi high"><span>INCIDENT</span><strong id="rw-cctv-incident">CRITICAL</strong></div>
           <div class="rw-cctv-kpi high"><span>CAMERA</span><strong id="rw-cctv-camera">SAMPLE-CAM-0142</strong></div>
@@ -41,25 +51,27 @@
       </div>`;
     document.body.appendChild(overlay);
     overlay.querySelector('#rw-cctv-close').addEventListener('click', close);
+    overlay.querySelector('#rw-cctv-retry').addEventListener('click', open);
     overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
     const video = overlay.querySelector('#rw-cctv-video');
+    video.querySelector('source').addEventListener('error', unavailable);
     video.addEventListener('playing', () => {
+      clearLoadingTimer();
+      overlay.querySelector('#rw-cctv-retry').hidden = true;
       overlay.querySelector('#rw-cctv-feed-status').textContent = '● PLAYING REFERENCE FEED';
       overlay.querySelector('#rw-cctv-feed-state').textContent = 'PLAYING';
       overlay.querySelector('#rw-cctv-availability').textContent = 'VIDEO PLAYING';
       overlay.querySelector('#rw-cctv-availability').className = 'positive';
     });
     video.addEventListener('canplay', () => {
+      clearLoadingTimer();
+      overlay.querySelector('#rw-cctv-retry').hidden = true;
+      overlay.querySelector('#rw-cctv-availability').className = 'positive';
       overlay.querySelector('#rw-cctv-feed-status').textContent = 'READY · CLICK PLAY IF NEEDED';
       overlay.querySelector('#rw-cctv-feed-state').textContent = 'READY';
       overlay.querySelector('#rw-cctv-availability').textContent = 'VIDEO READY';
     });
-    video.addEventListener('error', () => {
-      overlay.querySelector('#rw-cctv-feed-status').textContent = 'VIDEO SOURCE UNAVAILABLE';
-      overlay.querySelector('#rw-cctv-feed-state').textContent = 'UNAVAILABLE';
-      overlay.querySelector('#rw-cctv-availability').textContent = 'FEED ERROR';
-      overlay.querySelector('#rw-cctv-availability').className = 'warning';
-    });
+    video.addEventListener('error', unavailable);
     return overlay;
   }
 
@@ -75,13 +87,21 @@
     root.querySelector('#rw-cctv-asset').textContent = (document.querySelector('.incident-popover h2')?.textContent || 'RAIL ASSET').slice(0, 24).toUpperCase();
     root.querySelector('#rw-cctv-location').textContent = 'RAIL CORRIDOR · SAMPLE SECTOR';
     root.querySelector('#rw-cctv-time').textContent = nowSast();
+    clearLoadingTimer();
+    root.querySelector('#rw-cctv-feed-status').textContent = 'LOADING REFERENCE VIDEO...';
+    root.querySelector('#rw-cctv-feed-state').textContent = 'LOADING';
+    root.querySelector('#rw-cctv-availability').textContent = 'VIDEO LOADING';
+    root.querySelector('#rw-cctv-availability').className = 'warning';
+    root.querySelector('#rw-cctv-retry').hidden = true;
     root.classList.add('visible');
+    loadingTimer = setTimeout(unavailable, 15000);
     video.load();
     video.currentTime = 0;
     video.play().catch(() => {});
   }
 
   function close() {
+    clearLoadingTimer();
     if (!overlay) return;
     const video = overlay.querySelector('#rw-cctv-video');
     video.pause();

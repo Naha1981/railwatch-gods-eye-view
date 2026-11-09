@@ -41,6 +41,7 @@
   const unresolved = root.querySelector('#crs-unresolved');
   const stages = [...root.querySelectorAll('.crs-stage')];
   let hasActiveIncident = false;
+  let currentIncidentId = null;
   let currentStage = 'DETECT';
 
   const stageIndex = { DETECT: 0, LOCATE: 1, VERIFY: 2, RESPOND: 3, RESOLVE: 4, PROVE: 5 };
@@ -76,10 +77,12 @@
     assets.textContent = String(assetList.length);
     unresolved.textContent = String(unresolvedCount);
     root.classList.add('has-incident');
+    const isNewIncident = !hasActiveIncident || data.event_id !== currentIncidentId;
     hasActiveIncident = true;
-    currentStage = 'DETECT';
+    currentIncidentId = data.event_id;
+    if (isNewIncident) currentStage = 'DETECT';
     if (announce) emit('railwatch:incident', data);
-    updateStage('DETECT', true, announce);
+    if (isNewIncident) updateStage('DETECT', true, announce);
   }
 
   function setResolutionStage(stage) {
