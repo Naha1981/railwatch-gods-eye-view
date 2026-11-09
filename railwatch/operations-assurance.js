@@ -3,6 +3,7 @@
   const apiBase = (q.get('api') || 'https://naha-railwatch-api.onrender.com').replace(/\/$/, '');
   const ingestKey = q.get('ingest') || '';
   let current = null;
+  let localIncidentId = null;
   let timer = null;
   let operatorToken = sessionStorage.getItem('railwatch.operatorToken') || '';
 
@@ -28,7 +29,15 @@
   }
 
   async function refreshIncident(){
-    if(window.RailWatchMode.local) return;
+    if(window.RailWatchMode.local) {
+      if(!current) return;
+      $('ops-rule').textContent = 'SYNTHETIC / HUMAN REVIEW';
+      $('ops-ack').textContent = 'LOCAL'; $('ops-dispatch').textContent = 'LOCAL';
+      const isNewIncident = localIncidentId !== current.event_id;
+      if (isNewIncident) { localIncidentId = current.event_id; $('ops-stage').textContent = 'DETECT'; }
+      if(isNewIncident) $('ops-timeline').innerHTML = `<div class="ops-event"><b>DETECTED</b> · ${esc(current.event_id)}<br><span class="ops-muted">Browser-only synthetic incident</span></div>`;
+      return;
+    }
     if(!current) return;
     try{
       const token = await getOperatorToken();
@@ -88,7 +97,10 @@
   panel.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => performAction(button.dataset.action)));
   $('ops-replay').addEventListener('click', async () => { if(current) { await refreshIncident(); $('ops-timeline').scrollTop = $('ops-timeline').scrollHeight; } });
   document.addEventListener('railwatch:incident', event => { current = event.detail; clearInterval(timer); refreshIncident(); if(!window.RailWatchMode.local) timer = setInterval(refreshIncident, 60000); });
-  document.addEventListener('railwatch:stage', refreshIncident);
+  document.addEventListener('railwatch:stage', event => {
+    if(window.RailWatchMode.local && current && event.detail?.stage) $('ops-stage').textContent = String(event.detail.stage);
+    refreshIncident();
+  });
   refreshHealth();
   if(!window.RailWatchMode.local) setInterval(refreshHealth, 60000);
 })();
