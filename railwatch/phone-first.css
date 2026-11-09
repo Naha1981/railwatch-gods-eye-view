@@ -148,3 +148,50 @@ body.rw-open-desk #rw-desk{display:block;z-index:1600}
   #railwatch-ops-assurance{left:auto;right:18px;width:340px;top:calc(var(--rw-topbar-bottom,134px) + 88px);bottom:84px;max-height:none;overflow:auto;z-index:1100}
   .rw-workspace-dock{bottom:88px}
 }
+
+/* Phone sheets must use one coordinate system, never desktop centering. */
+@media (max-width:700px){
+  .topbar{display:grid!important;grid-template-columns:minmax(0,1fr) 106px!important;align-items:center!important;box-sizing:border-box!important}
+  .topbar>div:first-child{min-width:0!important}.topbar h1{font-size:16px!important;line-height:1.15!important;overflow-wrap:normal!important}
+  .topbar .status{width:106px!important;max-width:106px!important;box-sizing:border-box!important;min-width:0!important;overflow:hidden!important}
+  #ws-label{display:inline-block;max-width:78px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+  .rw-bar{grid-template-columns:1.4fr 1fr 1fr 1fr 1fr!important}.rw-bar button{font-size:12px!important;min-width:0;padding:4px!important}
+  .rw-bar button[data-k=ops]{display:block!important}
+  #railwatch-ops-assurance{display:none!important;box-sizing:border-box!important}
+  body.rw-open-ops #railwatch-ops-assurance{display:block!important;position:fixed!important;inset:76px 8px 78px!important;width:auto!important;max-height:none!important;overflow:auto!important;z-index:1800!important;opacity:1!important;pointer-events:auto!important}
+  #incident-popover,.evidence-ledger.rw-workspace-active,.audit-feed-panel.rw-workspace-active,.incident-history.rw-workspace-active,.ai-intelligence-panel.rw-workspace-active,
+  .dispatch-intelligence.visible,.resolution-intelligence.visible,#railwatch-cctv-overlay.visible,
+  aside#evidence-ledger.rw-workspace-active,aside.asset-operator.rw-workspace-active{
+    box-sizing:border-box!important;position:fixed!important;left:8px!important;right:8px!important;top:76px!important;bottom:78px!important;
+    width:auto!important;min-width:0!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;overflow-y:auto!important;overflow-x:hidden!important;
+    z-index:1800!important;overscroll-behavior:contain;touch-action:pan-y}
+  .evidence-ledger.rw-workspace-active,aside#evidence-ledger.rw-workspace-active{visibility:visible!important;pointer-events:auto!important;display:flex!important}
+  .dispatch-intelligence.visible,.resolution-intelligence.visible{z-index:1850!important}
+  .resolution-intelligence.visible{z-index:1870!important}
+  #railwatch-cctv-overlay.visible{z-index:1900!important}
+  .rw-workspace-scrim{z-index:1700!important}
+  .rw-bar{z-index:2400!important}
+  .rw-workspace-dock{z-index:2300!important;bottom:80px!important;max-height:48px!important}
+  .rw-workspace-fullscreen{inset:8px 8px 78px!important;z-index:2200!important}
+  .rw-workspace-toolbar{flex-shrink:0;min-height:44px!important;top:0!important;padding:4px!important}
+  .rw-workspace-toolbar button,.rw-workspace-tabs button,.operator-btn,.incident-popover button,.evidence-ledger-actions button,.dispatch-intelligence button,.resolution-intelligence button,.ops-actions button{min-height:44px!important;font-size:12px!important}
+  .evidence-ledger-summary,.evidence-ledger-actions{flex-shrink:0}.evidence-ledger-chain{flex:1;min-height:80px;max-height:none!important}
+  .incident-popover p,.evidence-ledger-entry p,.resolution-intelligence p,.dispatch-intelligence p{font-size:14px!important;line-height:1.45!important}
+  .popover-grid strong,.evidence-ledger-summary strong{font-size:12px!important;overflow-wrap:anywhere}
+  .whatsapp-panel{top:76px!important;bottom:78px!important;max-height:none!important}
+}
+@media(max-width:700px){
+  .evidence-ledger.rw-workspace-active{background:#090e12!important;color:#eef5f7!important;opacity:1!important;transition:none!important;visibility:visible!important;z-index:1950!important}
+  .evidence-ledger.rw-workspace-active .evidence-ledger-summary{grid-template-columns:minmax(0,1fr) minmax(80px,.7fr)}
+  .evidence-ledger .evidence-ledger-chain{color:#eef5f7!important}
+  .rw-workspace-active .rw-workspace-back{min-height:44px;flex-shrink:0}
+  #rw-layers{z-index:1000!important}
+  body.rw-open-menu .panel{z-index:1800!important}
+}
+@media(max-width:700px){
+  #railwatch-cctv-overlay.visible,#railwatch-cctv-overlay.rw-workspace-active{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;padding:8px!important;gap:8px!important}
+  #railwatch-cctv-overlay .rw-workspace-toolbar{width:auto!important;flex-shrink:0!important;margin:0!important}
+  #railwatch-cctv-overlay .rw-cctv-modal{width:100%!important;min-width:0!important;max-height:none!important;flex:1;min-height:0;box-sizing:border-box;overflow:auto}
+  .rw-cctv-head{padding:10px!important;gap:8px!important}.rw-cctv-head>div{min-width:0}.rw-cctv-title{font-size:17px!important}.rw-cctv-close{min-width:64px;min-height:44px;flex-shrink:0}
+  .rw-cctv-modal .rw-cctv-grid{padding:10px!important;grid-template-columns:1fr 1fr!important}.rw-cctv-kpi strong{overflow-wrap:anywhere;font-size:12px!important}
+}
