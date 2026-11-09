@@ -28,21 +28,23 @@
   <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/Widgets/widgets.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" />
   <link rel="stylesheet" href="./phone-first.css" />
+  <link rel="stylesheet" href="./review-layout.css" />
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.124/Build/Cesium/Cesium.js"></script>
 </head>
 <body>
+  <div id="rw-sample-boundary" role="note">SAMPLE WORKSPACE · Synthetic incidents and actions. Reference video is not live or incident evidence.</div>
   <div id="map"></div>
   
   <header class="topbar">
     <div>
       <span class="eyebrow">NAHALABS</span>
       <h1>RailWatch Command Center</h1>
-      <p>Real-time rail telemetry · incident response · geospatial situational awareness</p>
+      <p>Sample operator workflow. No live railway control or field dispatch.</p>
     </div>
     <div class="status"><span id="ws-dot"></span><span id="ws-label">DISCONNECTED</span></div>
   </header>
   <aside class="panel" aria-label="RailWatch controls">
-    <div class="panel-title">LIVE OPERATIONS</div>
+    <div class="panel-title">SAMPLE OPERATIONS</div>
     <div class="metric"><span>ACTIVE ALERTS</span><strong id="alert-count">0</strong></div>
     <div class="metric"><span>SOCKET CLIENTS</span><strong id="client-count">—</strong></div>
     <div class="network-status">

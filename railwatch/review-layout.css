@@ -1,0 +1,39 @@
+/* One readable work surface above the contextual map, with controls inside it. */
+#rw-sample-boundary { position:fixed;left:0;right:0;top:0;z-index:2400;background:#fff2c4;color:#342b0b;padding:7px 14px;text-align:center;font:600 13px/1.4 system-ui,sans-serif;box-sizing:border-box;pointer-events:none; }
+.topbar { margin-top:32px; }
+body.rw-workspace-open .rw-journey-guide,body.rw-reference-open .rw-journey-guide { display:none!important; }
+body.rw-workspace-open .asset-operator:not(.rw-workspace-active),body.rw-workspace-open .panel,body.rw-workspace-open .feed,body.rw-reference-open .asset-operator,body.rw-reference-open #incident-popover,body.rw-reference-open .evidence-ledger,body.rw-reference-open .rw-workspace-dock,body.rw-reference-open #railwatch-ops-assurance { visibility:hidden!important;pointer-events:none!important; }
+body.rw-reference-open .rw-bar { visibility:hidden!important;pointer-events:none!important; }
+#incident-popover.rw-workspace-active,.evidence-ledger.rw-workspace-active,.audit-feed-panel.rw-workspace-active,.incident-history.rw-workspace-active,.dispatch-intelligence.rw-workspace-active,.resolution-intelligence.rw-workspace-active,.ai-intelligence-panel.rw-workspace-active { position:fixed!important;top:50px!important;bottom:96px!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(820px,calc(100vw - 32px))!important;max-height:none!important;overflow-y:auto!important;box-sizing:border-box; }
+.rw-workspace-toolbar { top:0!important;min-height:44px;box-sizing:border-box;gap:10px!important;padding:8px 48px 8px 8px!important; }
+.rw-workspace-toolbar button,.rw-workspace-tabs button { min-height:40px;min-width:44px;font-size:11px!important; }
+.rw-workspace-nav { top:60px!important; }
+.overlay-close-control { width:40px;height:40px;top:8px!important;right:8px!important;z-index:50; }
+body.rw-workspace-open .rw-workspace-dock { bottom:96px;left:10px;max-width:220px; }
+#railwatch-cctv-overlay.visible,#railwatch-cctv-overlay.rw-workspace-active { z-index:2300!important;display:flex!important;padding:45px 12px 12px!important;box-sizing:border-box; }
+.rw-cctv-modal { display:block;width:min(920px,calc(100vw - 24px))!important;max-height:calc(100dvh - 60px)!important;overflow-y:auto!important;box-sizing:border-box; }
+.rw-cctv-modal > .rw-workspace-toolbar { position:static!important;margin:0!important;padding-right:12px!important; }
+.rw-cctv-head { position:sticky;top:0;z-index:40;background:#06090c;align-items:center; }
+.rw-cctv-close { min-width:64px;min-height:44px;font:700 14px system-ui; }
+.rw-cctv-stage { aspect-ratio:auto;height:clamp(210px,38vh,370px); }
+.rw-cctv-stage video { object-fit:contain; }
+.rw-cctv-stage .rw-cctv-overlayline { bottom:52px;pointer-events:none;font-size:10px; }
+.rw-cctv-badge,.rw-cctv-rec,.rw-cctv-feed-status { pointer-events:none; }
+.rw-cctv-feed-status { top:45px;font-size:13px; }
+.rw-cctv-recovery { display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px; }
+#rw-cctv-retry,.rw-cctv-recovery button,.rw-cctv-recovery a { margin:0;min-height:44px;padding:10px;border:1px solid #7b9eac;background:#121e26;border-radius:5px;color:#e6f6ff;font:600 13px/1.4 system-ui;box-sizing:border-box;text-decoration:none; }
+.rw-cctv-recovery [hidden],.rw-cctv-fallback[hidden] { display:none!important; }
+.rw-cctv-fallback { margin:0 18px 12px;padding:12px;background:#1e251a;border:1px solid #ffd36f;color:#fff1c0;font:14px/1.5 system-ui; }
+.rw-cctv-fallback h3 { margin:0 0 8px;font-size:17px; }.rw-cctv-fallback p { margin:8px 0; }
+.rw-cctv-note,.rw-cctv-source { font-size:13px;line-height:1.5; }
+.rw-cctv-sub { font-size:12px;line-height:1.4; }
+@media(max-width:700px) {
+  #rw-sample-boundary { font-size:11px;padding:5px 8px; }
+  .topbar { margin-top:42px; }
+  #incident-popover.rw-workspace-active,.evidence-ledger.rw-workspace-active,.audit-feed-panel.rw-workspace-active,.incident-history.rw-workspace-active,.dispatch-intelligence.rw-workspace-active,.resolution-intelligence.rw-workspace-active { top:50px!important;bottom:84px!important;left:8px!important;right:8px!important;transform:none!important;width:auto!important;max-height:none!important; }
+  .rw-cctv-modal { width:calc(100vw - 16px)!important;max-height:calc(100dvh - 64px)!important; }
+  .rw-cctv-head { padding:10px;gap:8px; }.rw-cctv-title { font-size:16px; }.rw-cctv-eyebrow{font-size:9px;}.rw-cctv-stage { height:230px; }
+  .rw-cctv-badge,.rw-cctv-rec { font-size:8px;max-width:45%; }.rw-cctv-feed-status { left:8px;right:8px;top:48px; }
+  .rw-cctv-overlayline { display:none; }.rw-cctv-recovery { padding:10px; }.rw-cctv-caption,.rw-cctv-note,.rw-cctv-source{padding-left:10px;padding-right:10px;}
+  .rw-workspace-toolbar { flex-wrap:wrap; }.rw-workspace-toolbar button{font-size:10px!important;}
+}

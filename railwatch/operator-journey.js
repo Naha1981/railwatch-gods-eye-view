@@ -168,11 +168,12 @@
   }
 
   function decorateWorkspace(rootNode, type) {
-    if (!rootNode || rootNode.querySelector(':scope > .rw-workspace-toolbar')) return;
+    if (!rootNode || rootNode.querySelector('.rw-workspace-toolbar')) return;
     const toolbar = document.createElement('div');
     toolbar.className = 'rw-workspace-toolbar';
     toolbar.innerHTML = `<span class="rw-journey-step">${workspaceLabel(type)}</span><span class="rw-toolbar-spacer"></span><button type="button" data-rwj-minimize>MINIMIZE</button><button type="button" data-rwj-fullscreen class="primary">FULL SCREEN</button>`;
-    rootNode.insertBefore(toolbar, rootNode.firstChild);
+    const toolbarHost = type === 'cctv' ? rootNode.querySelector('.rw-cctv-modal') : rootNode;
+    toolbarHost.insertBefore(toolbar, toolbarHost.firstChild);
     toolbar.querySelector('[data-rwj-minimize]').addEventListener('click', () => minimize(rootNode, type));
     toolbar.querySelector('[data-rwj-fullscreen]').addEventListener('click', () => toggleFullscreen(rootNode));
   }

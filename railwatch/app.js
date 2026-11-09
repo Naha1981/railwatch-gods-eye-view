@@ -240,6 +240,6 @@ incidentPopover.addEventListener('mouseenter',()=>{viewer.scene.canvas.style.cur
 incidentPopover.addEventListener('mouseleave',()=>{if(currentIncident) viewer.scene.canvas.style.cursor='default';});
 if (window.RailWatchMode.local) { wsLabel.textContent='LOCAL MODE'; clientCount.textContent='N/A';
   const sub=document.querySelector('.topbar p');
-  const syncNote=()=>{ sub.textContent = localStorage.getItem('rw.tok') ? 'Demo railway data - your sealed evidence cases sync to your account' : 'Demo railway data - report real evidence on the Evidence desk'; };
+  const syncNote=()=>{ sub.textContent = localStorage.getItem('rw.tok') ? 'Demo railway data - your sealed evidence cases sync to your account' : 'Sample workflow - no railway control or field dispatch'; };
   syncNote(); window.addEventListener('storage',syncNote); document.addEventListener('rw:account',syncNote);
 } else { connect(); refreshHealth(); setInterval(refreshHealth,60000); }
