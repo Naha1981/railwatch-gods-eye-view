@@ -1,0 +1,8 @@
+{
+  "camera": "Reference camera player opened. This is not live incident footage.",
+  "history": "Incident history opened. Check the record and source before relying on it.",
+  "help": "Say cameras or incident history. This opens a view only.",
+  "stop": "Stopped. No records were changed.",
+  "gaps": "Missing or conflicting evidence must be reviewed on its source page.",
+  "miss": "That command is not supported. No action taken."
+}
