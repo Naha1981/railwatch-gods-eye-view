@@ -2,3 +2,5 @@ html,body,#map{width:100%;height:100%;margin:0;overflow:hidden;background:#05060
 /* Voice commands are an inline panel, not an overlay over operational controls. */
 #rw-voice-commands {position:fixed;bottom:84px;left:12px;width:min(360px,calc(100vw - 24px));z-index:90;max-height:calc(100dvh - 160px);overflow:auto;}
 @media(max-width:700px){#rw-voice-commands{bottom:140px;left:12px;width:min(360px,calc(100vw - 24px));}}
+/* Expanded voice panel must sit above ordinary operations panels, below focused workspaces. */
+#rw-voice-commands:focus-within, #rw-voice-commands:has(naha-voice-control[expanded]) {z-index:1600;}

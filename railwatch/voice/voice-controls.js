@@ -38,6 +38,7 @@
       const product = this.getAttribute("product") === "rail" ? "rail" : "cargo";
       const s = this.attachShadow({ mode: "open" });
       s.innerHTML = `<style>:host{display:block;font:16px/1.5 system-ui,sans-serif;color:#17212b}*{box-sizing:border-box}details{border:1px solid #b7c1cc;border-radius:14px;background:#fff;padding:12px}summary{cursor:pointer;min-height:44px;align-content:center;font-weight:650}p{margin:8px 0}label{display:block}input,button{font:inherit;min-height:44px;border:1px solid #8c99a8;border-radius:8px;padding:8px 12px}input{width:100%;background:white;color:#17212b}button{background:#edf1f5;color:#17212b;cursor:pointer}button:disabled{opacity:.6;cursor:default}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.reply{border-top:1px solid #d7dee5;margin-top:12px;padding-top:12px}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #b25b00;outline-offset:3px}small{font:inherit;color:#435366}</style><details><summary>Voice commands</summary><p>Open a view by voice or type a command. No records are changed.</p><label>Command<input maxlength="180" placeholder="Try: show cameras" autocomplete="off"></label><div class="row"><button type="button" id="run">Run command</button><button type="button" id="mic">Tap to speak</button><button type="button" id="stop">Stop</button></div><p id="status">Microphone is off.</p><p><small>Your browser may send speech to its recognition provider. Do not speak confidential case details. Typing does not send a voice recording.</small></p><div class="reply" role="status" aria-live="polite">${product === "rail" ? "Try: cameras, incident history, help or stop." : "Try: documents, definitions, counts, clocks, map, cameras, missing evidence or stop."}</div></details>`;
+      s.querySelector("details").addEventListener("toggle", () => this.toggleAttribute("expanded", s.querySelector("details").open));
       const input = s.querySelector("input"),
         status = s.querySelector("#status"),
         reply = s.querySelector(".reply");
@@ -48,6 +49,7 @@
           this.audio?.pause();
           this.audio = new Audio(assets + "/" + key + "-v1.mp3");
           const playing = this.audio;
+          playing.onended = () => { if (this.audio === playing) status.textContent = "Voice reply finished. Microphone is off."; };
           playing
             .play()
             .then(() => {
