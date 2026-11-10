@@ -1,3 +1,4 @@
+import { isolateEvidenceDeskHealth } from './railwatch-qa-fixtures.mjs';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
@@ -95,6 +96,8 @@ try {
   const browser = await puppeteer.launch({ headless: 'new', executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(), args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   try {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+    await page.setViewport({ width:1600, height:1000 });
+    await isolateEvidenceDeskHealth(page);
     const consoleErrors = [];
     page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
     page.on('pageerror', error => consoleErrors.push(error.message));
@@ -138,9 +141,17 @@ try {
       await page.click('[data-acknowledge-incident]');
       await page.waitForFunction(() => document.querySelector('.crs-stage[data-stage="LOCATE"]')?.classList.contains('active'), { timeout: 5_000 });
       await page.click('.asset-select');
-      assert(await page.$eval('.crs-stage[data-stage="VERIFY"]', el => el.classList.contains('active')));
+      await page.waitForFunction(() => document.querySelector('.crs-stage[data-stage="VERIFY"]')?.classList.contains('active'), { timeout: 5000 });
 
+      // Close the incident sheet before choosing the asset operator action.
+      // Clicking through the foreground incident targets the wrong surface.
+      await page.click('#incident-popover [data-rwj-minimize]');
+      await page.click('.rw-bar [data-k="assets"]');
       await page.waitForSelector('.asset-operator button[data-action="dispatched"][data-id="DEMO-SIG-0142"]', { timeout: 10_000 });
+      assert(await page.$eval('.asset-operator button[data-action="dispatched"][data-id="DEMO-SIG-0142"]', el => {
+        const r=el.getBoundingClientRect(), hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+        return hit===el || el.contains(hit);
+      }), 'asset dispatch control must be unobstructed before clicking');
       await page.click('.asset-operator button[data-action="dispatched"][data-id="DEMO-SIG-0142"]');
       await page.waitForSelector('.dispatch-intelligence.visible #dispatch-confirm', { timeout: 5_000 });
       await page.click('#dispatch-confirm');

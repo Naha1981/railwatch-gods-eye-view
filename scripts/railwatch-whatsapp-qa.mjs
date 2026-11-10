@@ -1,3 +1,4 @@
+import { isolateEvidenceDeskHealth } from './railwatch-qa-fixtures.mjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer';
@@ -34,6 +35,8 @@ try {
   const browser = await puppeteer.launch({ headless: 'new', executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(), args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   try {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+    await page.setViewport({ width:1600, height:1000 });
+    await isolateEvidenceDeskHealth(page);
     const errors = [];
     page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
     page.on('pageerror', error => errors.push(`page: ${error.message}`));
