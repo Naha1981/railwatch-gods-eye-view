@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from datetime import timezone
 
 logger = logging.getLogger("railwatch.audit")
 
@@ -89,7 +90,7 @@ def install() -> None:
             details = row[6] if isinstance(row[6], dict) else json.loads(row[6])
             restored.append({
                 "id": row[0],
-                "timestamp": row[1].isoformat() if hasattr(row[1], "isoformat") else str(row[1]),
+                "timestamp": row[1].astimezone(timezone.utc).isoformat() if hasattr(row[1], "astimezone") else str(row[1]),
                 "actor": row[2],
                 "tenant": row[3],
                 "incident_id": row[4],

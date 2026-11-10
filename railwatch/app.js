@@ -225,7 +225,7 @@ function connect(){
 
 async function refreshHealth(){
   if (window.RailWatchMode.local) return;
-  try{const res=await fetch(`${apiBase}/healthz`);const data=await res.json();clientCount.textContent=String(data.connections);}catch{clientCount.textContent='—';}
+  try{const res=await fetch(`${apiBase}/healthz`);const data=await res.json();clientCount.textContent=Number.isFinite(data.connections)?String(data.connections):'—';}catch{clientCount.textContent='—';}
 }
 
 document.getElementById('demo-alert').addEventListener('click',async()=>{

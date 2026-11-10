@@ -103,6 +103,12 @@ export default {
       }catch(e){err=String(e&&e.message||e)}
       return json(req,{source:'Live ship tracking (short sample)',count:Object.keys(ships).length,ships:Object.values(ships),error:err||undefined});
     }
+    if(u.pathname==='/api/logout'&&req.method==='POST'){
+      const h=req.headers.get('authorization')||'';
+      if(!/^Bearer [0-9a-f]{64}$/.test(h))return json(req,{error:'Log in first.'},401);
+      await env.DB.prepare('DELETE FROM sessions WHERE token_hash=?').bind(await sha('tok:'+h.slice(7))).run();
+      return json(req,{ok:true});
+    }
     if(u.pathname==='/api/health')return json(req,{ok:true,service:'railwatch-api',sealCheck:true});
     const k=await wsKey(req,env);
     if(k&&k.bad)return json(req,{error:'Please log in again.'},401);

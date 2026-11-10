@@ -131,5 +131,18 @@ console.log('session expiry (30 days)');
   const stillThere = execSync(`${WRANGLER} d1 execute railwatch --local --persist-to "${PERSIST}" --command "SELECT count(*) c FROM sessions WHERE email='${C.email}'" --json`, { stdio: 'pipe' }).toString();
   check('expired session row deleted', /"c":\s*0|"c":0/.test(stillThere), stillThere.slice(0, 120));
 }
+console.log('single-session signout');
+{
+  const login = await api('/api/login', {method:'POST',body:JSON.stringify({email:B.email,password:B.pw})});
+  check('second session opens', login.status===200 && !!login.body.token);
+  const out = await api('/api/logout',{method:'POST'},{authorization:'Bearer '+B.token});
+  check('logout accepted', out.status===200 && out.body.ok);
+  const replay = await api('/api/cases',{}, {authorization:'Bearer '+B.token});
+  check('logged-out token replay rejected', replay.status===401);
+  const other = await api('/api/cases',{}, {authorization:'Bearer '+login.body.token});
+  check('other session preserved',other.status===200);
+  const twice = await api('/api/logout',{method:'POST'},{authorization:'Bearer '+B.token});
+  check('logout is idempotent',twice.status===200);
+}
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) { console.log('FAILED: ' + fails.join(' | ')); process.exit(1); }

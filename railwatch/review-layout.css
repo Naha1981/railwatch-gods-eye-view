@@ -37,3 +37,30 @@ body.rw-workspace-open .rw-workspace-dock { bottom:96px;left:10px;max-width:220p
   .rw-cctv-overlayline { display:none; }.rw-cctv-recovery { padding:10px; }.rw-cctv-caption,.rw-cctv-note,.rw-cctv-source{padding-left:10px;padding-right:10px;}
   .rw-workspace-toolbar { flex-wrap:wrap; }.rw-workspace-toolbar button{font-size:10px!important;}
 }
+
+/* Readable workflow status, including the phone Menu task panel. */
+.control-room-status { opacity:1!important; grid-template-columns:minmax(120px,1fr) minmax(260px,1.6fr); }
+.crs-metrics { grid-column:1/-1; grid-template-columns:repeat(4,minmax(0,1fr)); }
+.crs-stage { font-size:12px; line-height:1.4; padding:8px 3px; color:#b7c7d1; }
+.crs-kicker,.crs-main span:last-child,.crs-metrics small { font-size:11px; line-height:1.4; }
+.crs-main span:last-child,.crs-metrics small { color:#b7c7d1; }
+.control-room-status:not(.has-incident) .crs-metrics strong { color:#b7c7d1; }
+.rw-journey-step,.rw-journey-next strong,.rw-journey-note { font-size:12px; line-height:1.5; }
+.rw-journey-note { color:#b7c7d1; }
+.rw-journey-body p,.rw-journey-title { font-size:14px; }
+.rw-journey-actions button { font-size:12px; min-height:44px; }
+@media(max-width:700px) {
+  aside.panel .control-room-status { display:grid!important; grid-template-columns:1fr!important; max-height:none!important; min-height:0!important; padding:12px!important; margin:0 0 14px!important; overflow:visible!important; opacity:1!important; background:#fffdf8!important; border:1px solid #c2b7a4!important; color:#1f1a12!important; }
+  aside.panel .crs-main strong { color:#1f1a12; font-size:14px; }
+  aside.panel .crs-kicker,aside.panel .crs-main span:last-child,aside.panel .crs-metrics small,aside.panel .crs-metrics strong { color:#534a3e!important; font-size:12px; }
+  aside.panel .crs-stage-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+  aside.panel .crs-stage { color:#534a3e; background:#f4efe4; border:1px solid #c2b7a4; font-size:12px; }
+  aside.panel .crs-stage.active { background:#fff0c5; color:#674500; border-color:#9b6900; }
+  aside.panel .crs-stage.complete { background:#e1f2e6; color:#19562f; border-color:#609170; }
+  aside.panel .crs-metrics { grid-row:3; grid-column:1; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  aside.panel .hint { opacity:1; color:#534a3e; font-size:14px; }
+}
+@media(max-width:700px) {
+  aside.panel .control-room-status:not(.has-incident) .crs-stage.active { background:#fff0c5; color:#674500!important; border-color:#9b6900; }
+  .rw-journey-guide .rw-journey-note { color:#534a3e; }
+}

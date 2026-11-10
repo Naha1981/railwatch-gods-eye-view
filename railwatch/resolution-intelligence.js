@@ -1,4 +1,17 @@
 (() => {
+  let reviewState = { acknowledged: false, fieldVerified: false, visualConfirmed: false };
+  document.addEventListener('railwatch:incident', () => { reviewState = { acknowledged: false, fieldVerified: false, visualConfirmed: false }; });
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('button');
+    if (!button || button.disabled) return;
+    if (button.matches('[data-acknowledge-incident]')) reviewState.acknowledged = true;
+    if (button.matches('[data-action="verify"]')) reviewState.fieldVerified = true;
+    if (button.id === 'cctv-verified') reviewState.visualConfirmed = true;
+  }, true);
+  function verificationText(review) {
+    return review.visualConfirmed ? 'Operator confirmed visual check (sample only)'
+      : review.fieldVerified ? 'Operator marked field verified (sample only)' : 'No operator verification recorded';
+  }
   const params = new URLSearchParams(location.search);
   const apiBase = (params.get('api') || 'https://naha-railwatch-api.onrender.com').replace(/\/$/, '');
 
@@ -33,7 +46,7 @@
       ['Potential operational interruption', '+10'],
     ];
   }
-  function buildReportHtml(data, asset, team, stamp, closed) {
+  function buildReportHtml(data, asset, team, stamp, closed, review) {
     const status = closed ? 'INCIDENT CLOSED · EVIDENCE PRESERVED' : 'RESPONSE COMPLETE · READY TO CLOSE';
     const assetName = asset?.name || 'Selected infrastructure asset';
     const teamName = team?.name || 'Assigned response unit';
@@ -42,13 +55,13 @@
       ['SIGNAL', data?.alert_type || 'LINE_BREACH', 'SIMULATED / SAMPLE'],
       ['LOCATION', `${data?.segment || 'Sample sector'} · KM ${Number(data?.km_marker || 0).toFixed(1)}`, 'SCHEMATIC GIS · SAMPLE'],
       ['ASSET', assetName, 'SAMPLE ASSET REGISTRY'],
-      ['VERIFICATION', 'Operator evidence review completed', 'HUMAN OPERATOR'],
+      ['VERIFICATION', verificationText(review), 'BROWSER-RECORDED SAMPLE ACTION'],
       ['RESPONSE', teamName, 'SAMPLE DISPATCH WORKFLOW'],
       ['PROOF', status, 'OPERATOR CLOSURE'],
     ].map(([stage, value, source]) => `<tr><td><b>${esc(stage)}</b></td><td>${esc(value)}</td><td>${esc(source)}</td></tr>`).join('');
     const proofPayload = JSON.stringify({ event_id: data?.event_id || 'SAMPLE', alert_type: data?.alert_type || 'LINE_BREACH', km_marker: Number(data?.km_marker || 0), asset: assetName, team: teamName, status });
     return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RailWatch Incident Report</title><style>
-      body{font-family:Arial,sans-serif;padding:36px;color:#162028;max-width:980px;margin:auto;background:#fff;line-height:1.45}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;color:#64727a}.meta{color:#66727a;margin:4px 0 24px}h1{margin:0 0 4px}.box{border:1px solid #d8e0e5;border-radius:8px;padding:16px;margin:12px 0}.label{font-size:11px;color:#68757d;font-weight:800;letter-spacing:.08em;margin-bottom:7px}.ok{color:#167642;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kv{border:1px solid #e1e7ea;padding:10px;border-radius:6px}.kv small{display:block;color:#68757d;font-weight:800;font-size:10px;letter-spacing:.08em}.kv b{display:block;margin-top:3px}.table{width:100%;border-collapse:collapse}.table td{border-top:1px solid #e4e9ec;padding:8px;text-align:left;vertical-align:top}.note{font-size:12px;color:#66727a}.report-actions{display:flex;gap:10px;margin:0 0 24px;padding:12px;background:#f3f6f8;border:1px solid #d8e0e5;border-radius:8px}.report-actions button{border:1px solid #b9c7cf;background:#162028;color:#fff;border-radius:6px;padding:10px 14px;font-weight:800;cursor:pointer}.report-actions button.secondary{background:#fff;color:#162028}@media(max-width:700px){.grid{grid-template-columns:1fr}}@media print{body{padding:0}.report-actions{display:none}.box{break-inside:avoid}}
+      body{font-family:Arial,sans-serif;padding:36px;color:#162028;max-width:980px;margin:auto;background:#fff;line-height:1.45}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;color:#64727a}.meta{color:#66727a;margin:4px 0 24px}h1{margin:0 0 4px}.box{border:1px solid #d8e0e5;border-radius:8px;padding:16px;margin:12px 0}.label{font-size:11px;color:#68757d;font-weight:800;letter-spacing:.08em;margin-bottom:7px}.ok{color:#167642;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kv{border:1px solid #e1e7ea;padding:10px;border-radius:6px}.kv small{display:block;color:#68757d;font-weight:800;font-size:10px;letter-spacing:.08em}.kv b{display:block;margin-top:3px}.table{width:100%;border-collapse:collapse}.table td{border-top:1px solid #e4e9ec;padding:8px;text-align:left;vertical-align:top}.note{font-size:12px;color:#66727a}.report-actions{display:flex;gap:10px;margin:0 0 24px;padding:12px;background:#f3f6f8;border:1px solid #d8e0e5;border-radius:8px}.report-actions button{border:1px solid #b9c7cf;background:#162028;color:#fff;border-radius:6px;padding:10px 14px;font-weight:800;cursor:pointer}.report-actions button.secondary{background:#fff;color:#162028}@media(max-width:700px){body{padding:16px}.grid{grid-template-columns:minmax(0,1fr)}.report-actions{flex-wrap:wrap}.box{min-width:0}.table{table-layout:fixed;font-size:12px}.table td{overflow-wrap:anywhere;padding:6px 3px}.kv b{overflow-wrap:anywhere}}@media print{body{padding:0}.report-actions{display:none}.box{break-inside:avoid}}
     </style></head><body>
       <div class="report-actions"><button onclick="window.print()">PRINT REPORT</button><button class="secondary" onclick="downloadReport()">SAVE / DOWNLOAD REPORT</button></div>
       <div class="eyebrow">NAHALABS · RAILWATCH COMMAND CENTER</div>
@@ -65,11 +78,11 @@
       <div class="box"><div class="label">FINAL STATUS</div><div class="ok">${esc(status)}</div></div>
       <div class="box"><div class="label">RISK DECISION · RULE-FIRST SAMPLE</div><div class="grid"><div class="kv"><small>RISK SCORE</small><b>86 / 100 · HIGH RISK</b></div><div class="kv"><small>OPERATING IMPACT</small><b>Verify train movement before dispatch</b></div></div><table class="table"><tbody>${factors}</tbody></table><p class="note">Weights are explainable sample values. This is not a predictive ML model.</p></div>
       <div class="box"><div class="label">EVIDENCE CHAIN</div><table class="table"><thead><tr><td><b>STAGE</b></td><td><b>RECORD</b></td><td><b>PROVENANCE</b></td></tr></thead><tbody>${evidence}</tbody></table></div>
-      <div class="box"><div class="label">OPERATOR ACTIONS</div><div class="grid"><div class="kv"><small>ACKNOWLEDGEMENT</small><b>INCIDENT ACKNOWLEDGED</b></div><div class="kv"><small>VERIFICATION</small><b>ASSET / CCTV SAMPLE REVIEW</b></div><div class="kv"><small>DISPATCH</small><b>${esc(teamName)}</b></div><div class="kv"><small>CLOSURE</small><b>${closed ? 'OPERATOR CLOSED' : 'PENDING CLOSE'}</b></div></div></div>
-      <div class="box"><div class="label">PROVENANCE & SAFETY BOUNDARY</div><p class="note">CCTV is simulated reference evidence. Network geometry is schematic. Asset records are sample records. No autonomous signalling, train movement, or field dispatch is performed by this system. Production deployment would attach authenticated source identifiers, timestamps, operator identity, integrity metadata, field reports, and authoritative GIS/network records.</p></div>
+      <div class="box"><div class="label">OPERATOR ACTIONS</div><div class="grid"><div class="kv"><small>ACKNOWLEDGEMENT</small><b>${review.acknowledged ? 'SAMPLE ACKNOWLEDGEMENT RECORDED' : 'NOT RECORDED'}</b></div><div class="kv"><small>VERIFICATION</small><b>${esc(verificationText(review))}</b></div><div class="kv"><small>DISPATCH</small><b>${esc(teamName)}</b></div><div class="kv"><small>CLOSURE</small><b>${closed ? 'OPERATOR CLOSED' : 'PENDING CLOSE'}</b></div></div></div>
+      <div class="box"><div class="label">PROVENANCE & SAFETY BOUNDARY</div><p class="note">CCTV is a reference surface, not incident evidence. Opening a reference viewer does not prove a visual check was confirmed. Network geometry is schematic. Asset records are sample records. No autonomous signalling, train movement, or field dispatch is performed by this system. Production deployment would attach authenticated source identifiers, timestamps, operator identity, integrity metadata, field reports, and authoritative GIS/network records.</p></div>
       <div class="box"><div class="label">REPORT</div><div class="grid"><div class="kv"><small>GENERATED</small><b>${esc(stamp)}</b></div><div class="kv"><small>RESPONSE UNIT</small><b>${esc(teamName)}</b></div></div></div>
       <div class="note">Sample report generated locally by NahaLabs RailWatch Command Center.</div>
-      <script>const proof=${JSON.stringify(proofPayload)};function downloadReport(){const doc='<!doctype html>'+document.documentElement.outerHTML.replace(/<script>[\\s\\S]*?<\\/script>/g,'');const blob=new Blob([doc],{type:'text/html;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='railwatch-incident-report.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}</script>
+      <script>const proof=${JSON.stringify(proofPayload)};function downloadReport(){const copy=document.documentElement.cloneNode(true);copy.querySelectorAll('.report-actions').forEach(e=>e.remove());const doc='<!doctype html>'+copy.outerHTML.replace(/<script>[\\s\\S]*?<\\/script>/g,'');const blob=new Blob([doc],{type:'text/html;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='railwatch-incident-report.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}</script>
     </body></html>`;
   }
 
@@ -79,11 +92,12 @@
     const assetName = asset?.name || 'Selected infrastructure asset';
     const teamName = team?.name || 'Assigned response unit';
     let closed = false;
+    const review = { ...reviewState };
     body.innerHTML = `
       <section class="resolution-status closed-ready"><span>INCIDENT STATUS</span><strong>RESPONSE COMPLETE · READY TO CLOSE</strong></section>
       <section class="resolution-summary"><div><small>INCIDENT</small><strong>${esc(data?.alert_type || 'LINE BREACH')}</strong></div><div><small>LOCATION</small><strong>${esc(data?.segment || 'Sample sector')} · KM ${Number(data?.km_marker || 0).toFixed(1)}</strong></div><div><small>ASSET</small><strong>${esc(assetName)}</strong></div><div><small>RESPONSE UNIT</small><strong>${esc(teamName)}</strong></div></section>
-      <section class="resolution-timeline"><div class="resolution-section-label">RESPONSE TIMELINE</div><div class="resolution-event"><b>DETECTED</b><span>Line-breach signal received · ${esc(stamp)}</span></div><div class="resolution-event"><b>LOCATED</b><span>Incident positioned at KM ${Number(data?.km_marker || 0).toFixed(1)}</span></div><div class="resolution-event"><b>VERIFIED</b><span>Asset reviewed via sample evidence workflow</span></div><div class="resolution-event"><b>DISPATCHED</b><span>${esc(teamName)} response queued</span></div><div class="resolution-event"><b>RESOLVED</b><span>Awaiting operator confirmation to close case</span></div></section>
-      <section class="resolution-evidence"><div class="resolution-section-label">EVIDENCE CAPTURED</div><div class="evidence-chip-row"><span>✓ SENSOR EVENT</span><span>✓ ASSET RECORD</span><span>✓ CCTV SAMPLE</span><span>✓ RESPONSE ACTION</span></div><p>Sample evidence trail. Production deployment would attach authenticated sensor records, field reports, CCTV references and operator audit events.</p></section>
+      <section class="resolution-timeline"><div class="resolution-section-label">RESPONSE TIMELINE</div><div class="resolution-event"><b>DETECTED</b><span>Line-breach signal received · ${esc(stamp)}</span></div><div class="resolution-event"><b>LOCATED</b><span>Incident positioned at KM ${Number(data?.km_marker || 0).toFixed(1)}</span></div><div class="resolution-event"><b>VERIFIED</b><span>${esc(verificationText(review))}</span></div><div class="resolution-event"><b>DISPATCHED</b><span>${esc(teamName)} response queued</span></div><div class="resolution-event"><b>RESOLVED</b><span>Awaiting operator confirmation to close case</span></div></section>
+      <section class="resolution-evidence"><div class="resolution-section-label">EVIDENCE CAPTURED</div><div class="evidence-chip-row"><span>✓ SENSOR EVENT</span><span>✓ ASSET RECORD</span><span>${review.visualConfirmed ? 'VISUAL CHECK CONFIRMED (SAMPLE)' : 'NO VISUAL CHECK RECORDED'}</span><span>✓ RESPONSE ACTION</span></div><p>Sample evidence trail. Production deployment would attach authenticated sensor records, field reports, CCTV references and operator audit events.</p></section>
       <button class="resolution-primary" id="close-incident" type="button">CLOSE INCIDENT · SAMPLE</button><button class="resolution-secondary" id="view-report" type="button">VIEW INCIDENT REPORT</button>`;
 
     body.querySelector('#close-incident').addEventListener('click', () => {
@@ -96,7 +110,7 @@
       const proof = document.createElement('div'); proof.className = 'resolution-proof-ready'; proof.innerHTML = '<strong>PROOF PACKAGE READY</strong><span>Timeline, evidence references and operator closure are recorded for this sample case.</span>'; button.insertAdjacentElement('afterend', proof);
       emitAudit('INCIDENT_CLOSED', `${data?.alert_type || 'LINE BREACH'} · ${assetName} · ${teamName}`);
     });
-    body.querySelector('#view-report').addEventListener('click', () => { const report = window.open('', '_blank', 'width=980,height=820'); if (!report) return; report.document.open(); report.document.write(buildReportHtml(data, asset, team, stamp, closed)); report.document.close(); emitAudit('INCIDENT_REPORT_VIEWED', assetName); });
+    body.querySelector('#view-report').addEventListener('click', () => { const report = window.open('', '_blank', 'width=980,height=820'); if (!report) return; report.document.open(); report.document.write(buildReportHtml(data, asset, team, stamp, closed, review)); report.document.close(); emitAudit('INCIDENT_REPORT_VIEWED', assetName); });
     emitAudit('RESOLUTION_OPENED', `${assetName} · ${teamName}`);
   }
   window.RailWatchResolution = { openForIncident };

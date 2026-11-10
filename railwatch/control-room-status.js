@@ -33,6 +33,17 @@
   else if (header) header.appendChild(root);
   else document.body.appendChild(root);
 
+  // Keep the same live status node in the phone Menu, instead of hiding it
+  // or covering the map with the desktop workflow header.
+  const phoneLayout = matchMedia('(max-width:700px)');
+  function placeStatus() {
+    const menu = document.querySelector('aside.panel');
+    if (phoneLayout.matches && menu) menu.prepend(root);
+    else if (header && connection) header.insertBefore(root, connection);
+  }
+  phoneLayout.addEventListener('change', placeStatus);
+  placeStatus();
+
   const title = root.querySelector('#crs-title');
   const locationEl = root.querySelector('#crs-location');
   const status = root.querySelector('#crs-status');

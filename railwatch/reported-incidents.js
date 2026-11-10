@@ -4,6 +4,9 @@
 (function(){
   var API=window.RAILWATCH_API||'https://railwatch-api.nahalabs.workers.dev';
   var SECTION_ID='rw-reported-section';
+  var generation=0;
+  async function request(url,opt){opt=opt||{};var ac=new AbortController(),timer=setTimeout(function(){ac.abort()},12000);opt.signal=ac.signal;try{return await fetch(url,opt)}finally{clearTimeout(timer)}}
+  function same(k,g){var now=creds();return generation===g&&now&&now.t===k.t&&now.c===k.c}
   function creds(){var t=localStorage.getItem('rw.tok'),c=localStorage.getItem('rw.ws');return (t&&c)?{t:t,c:c}:null}
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(ch){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}
   function clearOld(){
@@ -84,15 +87,17 @@
     document.body.appendChild(panel);
   }
   async function addStage(c,stage){
-    var k=creds();if(!k||!panel)return;
+    var k=creds(),started=generation,active=panel;if(!k||!active)return;
     var msg=panel.querySelector('.rwcp-msg');msg.textContent='Writing '+stage+' to the shared record...';
     panel.querySelectorAll('[data-stage]').forEach(function(b){b.disabled=true});
     try{
       // the server stamps the actor and time; the client sends only the stage name
-      var r=await fetch(API+'/api/cases/'+encodeURIComponent(c.id)+'/stages',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+k.t,'x-rw-workspace':k.c},body:JSON.stringify({stage:stage})});
+      var r=await request(API+'/api/cases/'+encodeURIComponent(c.id)+'/stages',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+k.t,'x-rw-workspace':k.c},body:JSON.stringify({stage:stage})});
       var d={};try{d=await r.json()}catch(e){}
+      if(!same(k,started)||panel!==active)return;
       if(!r.ok){msg.textContent='Not saved: '+(d.error||('HTTP '+r.status));panel.querySelectorAll('[data-stage]').forEach(function(b){b.disabled=hasStage(c,b.dataset.stage)});return}
-      var entry=d.entry||{stage:stage,at:new Date().toISOString(),by:localStorage.getItem('rw.acct')};
+      if(!d.entry||d.entry.stage!==stage||!d.entry.at)throw new Error('Missing server stage receipt');
+      var entry=Object.assign({},d.entry,{verified:true});
       c.stages=stageList(c).concat([entry]);
       if(stage==='RESPOND'&&!c.arrived){c.arrived=entry.at;c.responder=entry.by}
       msg.textContent=stage+' saved. Everyone in your organisation sees it.';
@@ -100,18 +105,18 @@
       panel.querySelector('.rwcp-x').addEventListener('click',closeCase);
       panel.querySelectorAll('[data-stage]').forEach(function(b){b.addEventListener('click',function(){addStage(c,b.dataset.stage)})});
       refresh(); // re-render feed row + pins from the server record
-    }catch(e){msg.textContent='No connection. Nothing was saved.';panel.querySelectorAll('[data-stage]').forEach(function(b){b.disabled=hasStage(c,b.dataset.stage)})}
+    }catch(e){if(!same(k,started)||panel!==active)return;msg.textContent='No connection. Nothing was saved.';panel.querySelectorAll('[data-stage]').forEach(function(b){b.disabled=hasStage(c,b.dataset.stage)})}
   }
   async function refresh(){
-    var k=creds();if(!k){clearOld();closeCase();return}
+    var k=creds(),started=generation;if(!k){clearOld();closeCase();return}
     try{
-      var r=await fetch(API+'/api/events',{headers:{authorization:'Bearer '+k.t,'x-rw-workspace':k.c}});
-      if(!r.ok)return;
-      var d=await r.json();
+      var r=await request(API+'/api/events',{headers:{authorization:'Bearer '+k.t,'x-rw-workspace':k.c}});
+      if(!same(k,started))return;if(!r.ok){if(r.status===401){clearOld();closeCase()}return;}
+      var d=await r.json();if(!same(k,started))return;
       render(Array.isArray(d.events)?d.events:[]);
     }catch(e){}
   }
-  document.addEventListener('rw:account',function(){setTimeout(refresh,1500)});
+  document.addEventListener('rw:account',function(){generation++;clearOld();closeCase();refresh()});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh()});
   window.addEventListener('focus',refresh);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(refresh,2500)});else setTimeout(refresh,2500);
