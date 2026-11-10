@@ -1,5 +1,5 @@
 (() => {
-  const VIDEO_MP4_URL = 'https://www.openbeelden.nl/files/55/55145.55131.WEEKNUMMER393-HRE0002A506.mp4';
+  const VIDEO_MP4_URL = './media/railway-reference-1939.mp4';
   const SOURCE_URL = 'https://www.openbeelden.nl/media/55132/Opening_van_de_spoorwegtentoonstelling.en';
   let overlay;
   let loadingTimer;
@@ -114,8 +114,8 @@
     returnFocus = document.activeElement;
     const root = ensureOverlay();
     const video = root.querySelector('#rw-cctv-video');
-    root.querySelector('#rw-cctv-title').textContent = 'Recorded railway example';
-    root.querySelector('#rw-cctv-camera').textContent = 'SAMPLE-CAM-0142';
+    root.querySelector('#rw-cctv-title').textContent = 'Railway camera example';
+    root.querySelector('#rw-cctv-camera').textContent = 'REFERENCE ONLY';
     root.querySelector('#rw-cctv-asset').textContent = (document.querySelector('.incident-popover h2')?.textContent || 'RAIL ASSET').slice(0, 24).toUpperCase();
     root.querySelector('#rw-cctv-location').textContent = 'HISTORIC EXHIBITION · NOT INCIDENT LOCATION';
     root.querySelector('#rw-cctv-time').textContent = 'VIEWED AT ' + nowSast();
@@ -153,6 +153,14 @@
     document.body.classList.remove('rw-reference-open');
     if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
   }
+
+  const cameraButton = document.createElement('button');
+  cameraButton.type = 'button';
+  cameraButton.id = 'rw-cameras-open';
+  cameraButton.textContent = 'Cameras';
+  cameraButton.setAttribute('aria-label', 'Cameras - recorded reference example');
+  cameraButton.addEventListener('click', open);
+  document.body.appendChild(cameraButton);
 
   document.addEventListener('click', (event) => {
     const button = event.target.closest('.operator-btn[data-action="cctv"]');
