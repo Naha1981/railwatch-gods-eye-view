@@ -191,7 +191,8 @@ try {
       assert.match(reportHtml, /RESPONSE/);
       assert.match(reportHtml, /PROOF/);
       assert.match(reportHtml, /INCIDENT CLOSED · EVIDENCE PRESERVED/);
-      assert.match(reportHtml, /CCTV is simulated reference evidence/);
+      assert.match(reportHtml, /CCTV is a reference surface, not incident evidence/);
+      assert.match(reportHtml, /Opening a reference viewer does not prove a visual check was confirmed/);
       assert.match(reportHtml, /No autonomous signalling, train movement, or field dispatch/);
 
       assert.deepEqual(consoleErrors, []);

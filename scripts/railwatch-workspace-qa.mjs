@@ -150,6 +150,7 @@ try {
         return {
           viewport: { width: innerWidth, height: innerHeight },
           header: read('.topbar'),
+          statusInPanel: Boolean(document.querySelector('aside.panel .control-room-status')),
           status: read('.control-room-status'),
           panel: read('.panel'),
           feed: read('.feed'),
@@ -167,7 +168,12 @@ try {
       assert(g.header && g.status, `header/status missing at ${viewport.width}x${viewport.height}`);
       assert.equal(g.status.display, 'grid', `incident control is not a grid at ${viewport.width}x${viewport.height}`);
       assert(g.status.left >= g.header.left - 1 && g.status.right <= g.header.right + 1, `incident control escapes header horizontally at ${viewport.width}x${viewport.height}`);
-      assert(g.status.top >= g.header.top - 1 && g.status.bottom <= g.header.bottom + 1, `incident control escapes header vertically at ${viewport.width}x${viewport.height}`);
+      if (viewport.width <= 700 && g.statusInPanel) {
+        assert(g.panel && g.status.top >= g.panel.top && g.status.bottom <= g.panel.bottom, `phone incident control escapes its control panel at ${viewport.width}x${viewport.height}`);
+        assert(g.panel.top >= g.header.bottom, 'phone panel overlaps the header');
+      } else {
+        assert(g.status.top >= g.header.top - 1 && g.status.bottom <= g.header.bottom + 1, `incident control escapes header vertically at ${viewport.width}x${viewport.height}`);
+      }
       if (g.panel) assert(g.panel.top >= g.header.bottom + 3, `left panel starts inside header at ${viewport.width}x${viewport.height}`);
       if (g.feed) assert(g.feed.top >= g.header.bottom + 3, `alert feed starts inside header at ${viewport.width}x${viewport.height}`);
       results.push({ agent: 'Layout Agent', viewport, status: 'PASS' });
