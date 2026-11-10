@@ -120,7 +120,7 @@
     if(a==='fly'&&c)fly(c);
     if(a==='snap'&&c){document.body.classList.remove('rw-open-desk');snapshot(c).then(function(ok){if(ok){save(cs);sync()}document.body.classList.add('rw-open-desk');render()})}
     if(a==='pack'&&c)pack([c]);if(a==='all')pack(cs);
-    if(a==='resp'&&c){var t=prompt('Time the response team arrived (e.g. 2026-10-18 14:30). Leave blank for now.',new Date().toISOString().slice(0,16).replace('T',' '));if(t){var d=new Date(t.replace(' ','T'));if(isNaN(d)){alert('Could not read that time.');return}c.arrived=d.toISOString();c.responder=prompt('Who responded? (optional)')||'';save(cs);render();sync()}}});
+    if(a==='resp'&&c){var t=prompt('Time the response team arrived (e.g. 2026-10-18 14:30). Leave blank for now.',new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16).replace('T',' '));if(t){var d=new Date(t.replace(' ','T'));if(isNaN(d)){alert('Could not read that time.');return}if(d<new Date(c.occurred)){alert('Arrival cannot be earlier than the incident. Check the local date and time.');return}c.arrived=d.toISOString();c.responder=prompt('Who responded? (optional)')||'';save(cs);render();sync()}}});
   window.RailWatchDesk={open:function(){document.body.classList.add('rw-open-desk');view='list';render()},newReport:function(){document.body.classList.add('rw-open-desk');view='form';render()}};
   var deskWasOpen=false;new MutationObserver(function(){var open=document.body.classList.contains('rw-open-desk');if(open&&!deskWasOpen&&view!=='form')softRender();deskWasOpen=open}).observe(document.body,{attributes:true,attributeFilter:['class']});
   setTimeout(function(){pins();sync()},1500);render();
